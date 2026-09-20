@@ -153,3 +153,9 @@ entries:
     section: "listings"
     change: "Implemented POST /api/uploads/sign with bucket routing: listing_photo -> listing-photos (returns publicUrl), handover_evidence -> handover-photos (private, no publicUrl), selfie/id_document -> renthub-uploads (private). Implemented GET/POST /api/listings and GET/PATCH/DELETE /api/listings/[id]. POST enforces KYC, PATCH/DELETE enforce ownership. Location radius filtering is currently basic text/category filtering only. Next.js 15 dynamic params are properly awaited."
     action_needed: "frontend: Use /api/uploads/sign before creating listings. Use the returned publicUrl for photos. Listings POST requires you to pass photos array. Listings GET returns `items`, `page`, `total`."
+
+  - date: "iteration 9"
+    by: backend
+    section: "trust"
+    change: "Implemented all trust flow endpoints from spec.yaml: /kyc/initiate, /kyc/status, /mock/digilocker/complete, /kyc/face-match (validates multipart form-data and private upload), and eSign mock endpoints (/bookings/[id]/contract, /bookings/[id]/contract/status, /mock/esign/complete). CORS ALLOWED_ORIGIN now supports a comma-separated list."
+    action_needed: "frontend: Call KYC and eSign endpoints exactly as documented. Send multipart/form-data for /kyc/face-match. Add your dev origin (http://localhost:5173) to ALLOWED_ORIGIN in your .env.local if you haven't."
