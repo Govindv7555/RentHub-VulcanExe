@@ -1,8 +1,8 @@
 import { NextRequest } from "next/server";
-import { handleOptions } from "../../../../../lib/cors";
-import { successResponse, errorResponse } from "../../../../../lib/api-helpers";
-import { requireAuth } from "../../../../../lib/auth";
-import { supabaseAdmin } from "../../../../../lib/supabase-admin";
+import { handleOptions } from "@/lib/cors";
+import { successResponse, errorResponse } from "@/lib/api-helpers";
+import { requireAuth } from "@/lib/auth";
+import { supabaseAdmin } from "@/lib/supabase-admin";
 
 export async function OPTIONS() {
   return handleOptions();
@@ -27,7 +27,7 @@ export async function POST(req: NextRequest, { params }: { params: Promise<{ boo
     }
 
     if (booking.owner_id !== authResult.user.id && booking.renter_id !== authResult.user.id) {
-      return errorResponse("VALIDATION_ERROR", "Not authorized", 403);
+      return errorResponse("NOT_OWNER", "Not a party to this booking", 403);
     }
 
     // Insert a draft contract

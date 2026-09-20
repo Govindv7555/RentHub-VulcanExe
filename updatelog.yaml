@@ -165,3 +165,59 @@ entries:
     section: "(no spec.yaml section)"
     change: "Added a seed script at backend/scripts/seed.ts. It populates the database with 3 verified mock users and 10 realistic listings with coordinates."
     action_needed: "frontend: You now have realistic mock data in the DB to test the listing collection and details against."
+  - date: "iteration 11"
+    by: backend
+    section: "trust (mock endpoints), project status"
+    change: >
+      Security fix to iteration 9: /api/mock/digilocker/complete and
+      /api/mock/esign/complete now require Authorization: Bearer, return
+      404 unless MOCK_KYC=true, act only on the caller's own KYC session or
+      a booking they are a party to, and store fixed demo values only
+      (mockAadhaar and signerId in the request body are ignored).
+      Status: backend/ exists, builds, and is being deployed to Vercel,
+      which supersedes the frontend iteration 5 note that backend/ was
+      removed. Seed data exists (iteration 10). Not built yet: bookings
+      pay/handover/return/dispute, chat and the new listing fields and
+      trust_score_percentage (frontend iteration 6), email and Google
+      auth (frontend iteration 7).
+    action_needed: >
+      frontend: call both mock endpoints with the logged-in user's token.
+      digilocker needs the sessionId from /kyc/initiate, and esign needs
+      the contractId. Set VITE_API_URL to the backend URL
+      (http://localhost:4000 locally) and use the real endpoints for
+      auth, listings and uploads instead of mock data. Do not depend on
+      chat, email auth, Google auth, or the new listing fields until a
+      backend entry says they are live. backend: build those in this
+      order: email auth, listing fields and trust_score_percentage, chat.
+      Google OAuth last, because it needs Google Cloud credentials.
+
+  - date: "iteration 11"
+    by: backend
+    section: "trust (mock endpoints), bookings contract, project status"
+    change: >
+      Security fix to iteration 9: /api/mock/digilocker/complete and
+      /api/mock/esign/complete now require Authorization: Bearer, return
+      404 unless MOCK_KYC=true, act only on the caller's own KYC session or
+      a booking they are a party to, and store fixed demo values only
+      (mockAadhaar and signerId in the request body are ignored).
+      GET /bookings/{bookingId}/contract and /contract/status return 403
+      NOT_OWNER unless the caller is the booking's owner or renter.
+      Backend CORS matches a single origin (ALLOWED_ORIGIN, no list), so
+      local dev uses http://localhost:5173 and production uses the
+      frontend's live URL. Status: backend/ exists, builds, and is being
+      deployed to Vercel, which supersedes the frontend iteration 5 note
+      that backend/ was removed. Seed data exists (iteration 10). Not
+      built yet: bookings pay/handover/return/dispute, chat, the new
+      listing fields and trust_score_percentage (frontend iteration 6),
+      email and Google auth (frontend iteration 7).
+    action_needed: >
+      frontend: call both mock endpoints with the logged-in user's token.
+      digilocker needs the sessionId from /kyc/initiate, and esign needs
+      the contractId. Set VITE_API_URL to the backend URL
+      (http://localhost:4000 locally) and use the real endpoints for
+      auth, listings and uploads instead of mock data. Run Vite on port
+      5173, because CORS allows only that origin locally. Do not depend on
+      chat, email auth, Google auth, or the new listing fields until a
+      backend entry says they are live. backend: build those in this
+      order: email auth, listing fields and trust_score_percentage, chat.
+      Google OAuth last, because it needs Google Cloud credentials.

@@ -1,8 +1,8 @@
 import { NextRequest } from "next/server";
-import { handleOptions } from "../../../../../lib/cors";
-import { successResponse, errorResponse } from "../../../../../lib/api-helpers";
-import { requireAuth } from "../../../../../lib/auth";
-import { supabaseAdmin } from "../../../../../lib/supabase-admin";
+import { handleOptions } from "@/lib/cors";
+import { successResponse, errorResponse } from "@/lib/api-helpers";
+import { requireAuth } from "@/lib/auth";
+import { supabaseAdmin } from "@/lib/supabase-admin";
 
 export async function OPTIONS() {
   return handleOptions();
@@ -14,6 +14,21 @@ export async function GET(req: NextRequest, { params }: { params: Promise<{ book
     if (authResult.error) return authResult.error;
 
     const { bookingId } = await params;
+
+    // Only the owner or the renter of this booking may see its contract
+    const { data: booking, error: bookingError } = await supabaseAdmin
+      .from("bookings")
+      .select("owner_id, renter_id")
+      .eq("id", bookingId)
+      .single();
+
+    if (bookingError || !booking) {
+      return errorResponse("VALIDATION_ERROR", "Booking not found", 404);
+    }
+
+    if (booking.owner_id !== authResult.user.id && booking.renter_id !== authResult.user.id) {
+      return errorResponse("NOT_OWNER", "Not a party to this booking", 403);
+    }
 
     const { data: contract, error } = await supabaseAdmin
       .from("contracts")
