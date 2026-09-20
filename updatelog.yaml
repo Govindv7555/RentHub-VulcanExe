@@ -85,7 +85,32 @@ entries:
     action_needed: >
       both sides: open HANDOFF.md first from now on, before spec.yaml — it's
       the new entry point to this whole handoff system.
-
+    - date: "iteration 4"
+    by: backend
+    section: "(project setup, no spec.yaml section)"
+    change: >
+      Supabase project RentHub is live (free plan) and schema.sql has now
+      actually been applied via the SQL Editor with RLS enabled. Verified in
+      Table Editor: bookings, contract_signatures, contracts, disputes,
+      handover_evidence, identity_records, kyc_sessions, listing_availability,
+      listings, payments, ratings, users, plus the view public_identity.
+      RLS is on for all tables with no policies yet, so the anon key can read
+      nothing. The view public_identity shows UNRESTRICTED and is still to be
+      reviewed. This entry corrects iteration 2 - the storage bucket
+      `renthub-uploads` and the phone auth provider are NOT yet confirmed
+      done. Each dev keeps their own git-ignored .env.local (not .env);
+      only .env.example is committed, keys are shared privately.
+    action_needed: >
+      backend: (1) confirm public_identity exposes only public-safe fields,
+      else alter view public_identity set (security_invoker = true);
+      (2) create the storage bucket renthub-uploads (private) and enable
+      phone auth; (3) write RLS policies, including a select policy on
+      listings if the frontend reads it directly; (4) start endpoints from
+      spec.yaml, using the service role key server-side only.
+      frontend: create your own .env.local from .env.example, get
+      SUPABASE_URL and the anon key privately, and build against spec.yaml
+      with mock data until endpoints are ready. Never use the service role
+      key.
 # ---------------------------------------------------------------------------
 # Add new entries below this line as the build progresses. Example shape
 # for the next real entry (delete this comment block once you've added one):
