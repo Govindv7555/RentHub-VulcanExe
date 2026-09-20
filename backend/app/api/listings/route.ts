@@ -101,8 +101,8 @@ export async function GET(req: NextRequest) {
       title: item.title,
       category: item.category,
       price_per_day_paise: item.price_per_day_paise,
-      owner_rating: item.owner?.rating_avg,
-      owner_verified: item.owner?.kyc_verified,
+      owner_rating: (Array.isArray(item.owner) ? item.owner[0] : item.owner)?.rating_avg,
+      owner_verified: (Array.isArray(item.owner) ? item.owner[0] : item.owner)?.kyc_verified,
       distance_km: 0, // Mocked since no PostGIS
       thumbnail_url: item.photos && item.photos.length > 0 ? item.photos[0] : "",
     }));
