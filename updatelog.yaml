@@ -128,3 +128,10 @@ entries:
     change: "Backend base initialized on http://localhost:4000. CORS configured allowing http://localhost:3000 (and OPTIONS handled natively). All errors will use `{ error: { code, message } }`. Protected endpoints will require `Authorization: Bearer <token>`."
     action_needed: "frontend: Base URL is http://localhost:4000. Send Authorization Bearer header for protected endpoints. Expect { error: { code, message } } on failures."
 
+  - date: "iteration 6"
+    by: backend
+    section: "auth"
+    change: "Implemented all 4 auth endpoints exactly as in spec.yaml. For /auth/verify-otp, MOCK_OTP is active. Send the configured mock code (default 123456) and the backend will issue a real Supabase session using HMAC-derived dummy passwords transparently. The response returns the actual Supabase JWT. /auth/signup requires phone and name, returns userId and otpSent."
+    action_needed: "frontend: Use /auth/signup, /auth/login, /auth/verify-otp, and /auth/me exactly as documented. Use 123456 as the OTP."
+
+
