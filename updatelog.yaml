@@ -159,3 +159,9 @@ entries:
     section: "trust"
     change: "Implemented all trust flow endpoints from spec.yaml: /kyc/initiate, /kyc/status, /mock/digilocker/complete, /kyc/face-match (validates multipart form-data and private upload), and eSign mock endpoints (/bookings/[id]/contract, /bookings/[id]/contract/status, /mock/esign/complete). CORS ALLOWED_ORIGIN now supports a comma-separated list."
     action_needed: "frontend: Call KYC and eSign endpoints exactly as documented. Send multipart/form-data for /kyc/face-match. Add your dev origin (http://localhost:5173) to ALLOWED_ORIGIN in your .env.local if you haven't."
+
+  - date: "iteration 10"
+    by: backend
+    section: "(no spec.yaml section)"
+    change: "Added a seed script at backend/scripts/seed.ts. It populates the database with 3 verified mock users and 10 realistic listings with coordinates."
+    action_needed: "frontend: You now have realistic mock data in the DB to test the listing collection and details against."
