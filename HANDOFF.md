@@ -38,3 +38,12 @@ You don't re-read `spec.yaml` and `schema.sql` top to bottom again. You:
   to open for detail.
 - **`.env.example`** — read once, at local setup, to know which Supabase
   keys to request (never commit real keys).
+
+## Local setup (once per dev)
+
+The Supabase project is already live and schema.sql is applied. Don't
+create a new project or re-run schema.sql.
+1. Copy `.env.example` to `.env.local` (git-ignored, never commit it).
+2. Get SUPABASE_URL and SUPABASE_ANON_KEY from the backend dev, privately.
+3. Only the backend uses SUPABASE_SERVICE_ROLE_KEY, and only server-side.
+4. Any change to schema.sql must also be run in the Supabase SQL Editor.
