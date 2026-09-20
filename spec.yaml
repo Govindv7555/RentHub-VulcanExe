@@ -1,0 +1,487 @@
+# =============================================================================
+# KIRAMART — spec.yaml
+# SINGLE SOURCE OF TRUTH for the API contract between frontend and backend.
+#
+# READ ORDER, EVERY ITERATION, BOTH FRONTEND AND BACKEND:
+#   1. spec.yaml       (this file)  — full contract. Read in full the first
+#      time; after that, treat it as reference and jump to the section you
+#      need rather than re-reading top to bottom.
+#   2. updatelog.yaml   — read this ONE IN FULL every iteration, no exceptions.
+#      It's the short, append-only list of what changed since spec.yaml was
+#      last stable. If updatelog.yaml references a section, open that section
+#      of spec.yaml before writing code against it.
+#
+# EDIT RULE: if you add, rename, or change a request/response shape —
+#   a) edit spec.yaml itself in the same commit, AND
+#   b) append one line to updatelog.yaml describing the change.
+# Do not let the running code drift from what's written here — the other
+# side's model is reading these two files, not your code.
+#
+# Commit paths: /spec.yaml and /updatelog.yaml (repo root). Together these
+# are the ONLY handoff files. Everything both models need — API contract,
+# mock KYC/eSign/face-match implementation detail, legal basis, privacy
+# rules, and the running log of changes — lives across these two files.
+# =============================================================================
+
+meta:
+  project: KiraMart
+  description: >
+    Insured C2C marketplace for renting home/garden/construction equipment.
+    Hackathon build, 32h. This spec covers every API surface: auth, listings,
+    search, bookings, the trust flow (KYC/face-match/eSign), deposits/payments,
+    handover evidence, ratings, and disputes.
+  conventions:
+    - "All requests/responses are JSON unless noted otherwise."
+    - "All authenticated endpoints require header: Authorization: Bearer <jwt>"
+    - "All money fields are integers in paise (₹1 = 100), never floats."
+    - "All timestamps are ISO 8601 UTC."
+    - "Every list endpoint supports ?page= and ?limit= (default limit 20, max 100)."
+    - "Error shape is always: { error: { code: string, message: string } }"
+  update_rule: >
+    Before writing a new endpoint, check this file for one that already
+    covers the need. Before changing a response shape, update this file
+    first, then the code. If frontend and backend disagree about a shape,
+    this file wins — fix the code, not the doc.
+
+# -----------------------------------------------------------------------------
+# STATE MACHINES — enforced server-side. Frontend reads these to know which
+# actions are legal to show/enable at each state.
+# -----------------------------------------------------------------------------
+state_machines:
+  booking:
+    order:
+      - draft
+      - kyc_verified
+      - contract_signed
+      - deposit_held
+      - handover_confirmed
+      - active
+      - return_confirmed
+      - settled
+    side_state: disputed   # branches off handover_confirmed or return_confirmed
+    rule: "no state may be skipped; backend rejects out-of-order transitions with 409"
+  kyc_session:
+    order: [pending, verified, failed]
+  listing:
+    order: [draft, active, paused, archived]
+
+# =============================================================================
+# AUTH
+# =============================================================================
+auth:
+  POST /auth/signup:
+    request: { phone: string, name: string }
+    response: { userId: string, otpSent: true }
+  POST /auth/verify-otp:
+    request: { phone: string, otp: string }
+    response: { userId: string, token: string, isNewUser: boolean }
+  POST /auth/login:
+    request: { phone: string }
+    response: { otpSent: true }
+  GET /auth/me:
+    auth: required
+    response:
+      userId: string
+      name: string
+      phone_masked: string
+      kyc_verified: boolean
+      rating: number
+      created_at: string
+
+# =============================================================================
+# TRUST FLOW — Aadhaar-style eKYC, face match, eSign bailment contract.
+# All providers here are MOCKED for the hackathon — no real UIDAI, DigiLocker,
+# or licensed eSign provider is called. This section is the full spec for
+# BOTH sides: request/response contract AND the implementation/UX/legal
+# detail. Read the whole `trust` block before touching any KYC/eSign code.
+# =============================================================================
+trust:
+  env_switch: "KYC_PROVIDER / FACE_PROVIDER / ESIGN_PROVIDER = mock | setu (mock is default and only implemented option)"
+  hard_rule: >
+    Never render real Government of India / DigiLocker / UIDAI logos or
+    emblems anywhere in the UI. Never fabricate a real CA name (eMudhra,
+    NSDL, Digio, etc.) on a generated certificate. Every mocked screen and
+    every generated PDF must visibly say DEMO. This is a legal line, not
+    a style preference — do not soften or skip it under time pressure.
+  status_note: >
+    If a real Setu/Surepass sandbox key becomes available before demo time,
+    swap KYC_PROVIDER to "setu" only — leave FACE_PROVIDER and ESIGN_PROVIDER
+    on mock. Do not attempt real eSign; no free/legal path exists in 32h.
+  legal_basis_to_cite_in_pitch: >
+    Bailment under Indian Contract Act ss.148-171; failure to return maps
+    to Criminal Breach of Trust (BNS s.316, formerly IPC 405/406) and,
+    where identity was fraudulent, Cheating (BNS s.318, formerly IPC 420).
+    Do NOT use "theft by false pretenses" — that is a US legal concept.
+
+  interfaces:
+    IdentityProvider:
+      methods:
+        - "initiate(userId) -> { sessionId, redirectUrl }"
+        - "fetchResult(sessionId) -> EkycResult"
+      implementations:
+        mock: MockIdentityProvider   # returns canned payload after artificial delay
+        real: SetuDigiLockerProvider # not built in hackathon; stub only
+      EkycResult_shape:
+        verified: boolean
+        name: string
+        dob: string
+        gender: string
+        address_hash: string        # store hash only, never raw address to frontend
+        aadhaar_last4: string       # NEVER store/return full Aadhaar number
+        photo_base64: string        # synthetic/demo photo only, never a real ID photo
+        source: "mock | setu"
+
+    FaceMatchProvider:
+      methods:
+        - "compare(selfieBuffer, aadhaarPhotoBuffer) -> { score, passed }"
+      implementations:
+        mock:
+          logic: >
+            Deterministic per-user score from a seed table so demo runs are
+            reproducible. Threshold: passed = score >= 0.85.
+            Seed at least one demo user with score ~0.41 to show the
+            rejection path live.
+          artificial_delay_ms: 1500
+        preferred_real_free_option: "face-api.js, runs client-side, no API key, no cost"
+      privacy: "delete raw selfie after scoring; persist only score + passed + liveness flag"
+
+    EsignProvider:
+      methods:
+        - "requestSignature(docId, signerName, signerContact) -> redirectUrl"
+        - "onWebhook(payload) -> signed PDF stored, contract.status = signed"
+      implementation: mock_only
+      mock_contract_pdf_requirements:
+        - "Diagonal red watermark every page: 'DEMO — NOT A LEGALLY VALID ELECTRONIC SIGNATURE'"
+        - "Footer disclaimer: production uses a CCA-licensed ESP under Section 5, IT Act 2000"
+        - "Self-signed cert generated via openssl — NEVER fabricate a real CA's identity"
+        - "Embed SHA-256 hashes of handover photos inside the contract body"
+        - "OTP screen accepts a fixed code (e.g. 123456), shown on screen"
+
+  privacy_hard_rules:
+    - "Never persist a full Aadhaar number, anywhere, mocked or real."
+    - "Never persist a raw selfie past the face-match step."
+    - "Mock routes must be disabled when NODE_ENV=production (guard in code, not just docs)."
+    - "identity_records row-level security: owner can read renter's name + verified_badge ONLY, nothing else"
+
+  frontend_ux_requirements:
+    mock_digilocker_consent:
+      route: /mock/digilocker
+      must_include:
+        - "Top banner: 'DEMO ENVIRONMENT — simulated DigiLocker flow. No real Aadhaar data is used.'"
+        - "Own branding only — no GoI/DigiLocker/UIDAI logo"
+        - "12-digit Aadhaar input, any value accepted, placeholder hints a test value"
+        - "OTP step: fixed code shown on screen, ~2s artificial delay before success"
+        - "Consent checkbox gates the submit button"
+      on_submit: "POST /api/mock/digilocker/complete, then redirect to /kyc/callback"
+    kyc_callback:
+      route: /kyc/callback
+      behavior: "poll GET /kyc/status until verified:true (don't trust the bare redirect as proof), then advance booking state"
+    face_match_capture:
+      behavior: >
+        Capture selfie via getUserMedia, upload via /uploads/sign, POST
+        reference to /kyc/face-match, show score + pass/fail. Add a
+        liveness prompt (blink / turn head) — cosmetic is fine, but it
+        must exist so the flow isn't defeated by a static photo on stage.
+    mock_esign_flow:
+      route: /bookings/{id}/esign
+      must_include:
+        - "Contract preview showing item, declared value, deposit, both party names (masked), photo hashes"
+        - "OTP-style screen, fixed accepted code shown on screen"
+        - "Success state links to the generated PDF (with DEMO watermark visible)"
+    demo_badge:
+      component: <DemoBadge />
+      behavior: >
+        Small persistent corner badge on any mocked screen: "Mocked: DigiLocker ·
+        eSign · Acko" with a tooltip naming the real provider each would use in
+        production. Show this proactively — don't wait to be asked.
+    other_ux_notes:
+      - "Seed 3-4 fixed demo accounts; don't rely on live typing during the pitch."
+      - "Support a ?demo=fast query param that skips artificial delays for stage time."
+      - "Have a 60s screen recording of the full flow as an offline fallback."
+
+  pitch_line_if_asked_about_realism: >
+    "eKYC and eSign are sandboxed here. Going live needs a sub-KUA agreement
+    and a CCA-licensed eSign provider — about two weeks and roughly ₹15 per
+    booking. The architecture is real; only the credentials are mocked."
+
+  cost_reference_only_do_not_charge_in_demo:
+    digilocker_ekyc: "~₹4-5 per verification (Setu)"
+    live_aadhaar_otp_ekyc: "~₹5 via sub-KUA aggregator; ₹20/txn if directly licensed with UIDAI"
+    face_match: "~₹1-3 per match"
+    esign: "~₹3-25 per signature depending on volume"
+
+  data_model:
+    kyc_sessions: [id, user_id, status, provider, consent_timestamp, consent_ip]
+    identity_records: [user_id, name, dob, gender, address_hash, aadhaar_last4, verified_badge]
+    contracts: [booking_id, pdf_url, document_hash, status]
+    contract_signatures: [contract_id, signer_user_id, signed_at, certificate_meta]
+    handover_evidence: [booking_id, photo_url, photo_sha256, captured_by, captured_at]
+
+  endpoints:
+    POST /kyc/initiate:
+      auth: required
+      request: {}
+      response: { sessionId: string, redirectUrl: string }
+      notes: "redirectUrl points to /mock/digilocker in mock mode"
+
+    GET /kyc/status:
+      auth: required
+      query: { sessionId: string }
+      response: { status: "pending|verified|failed", verified_badge: boolean }
+
+    POST /api/mock/digilocker/complete:
+      internal: true
+      description: "Fired by the mock consent page on submit. Not called by real frontend flows."
+      request: { sessionId: string, mockAadhaar: string, mockOtp: string }
+      response: { ok: true }
+      side_effect: "flips kyc_sessions.status -> verified, writes canned identity_records row"
+
+    POST /kyc/face-match:
+      auth: required
+      request: { multipart: { selfie: file }, sessionId: string }
+      response: { score: number, passed: boolean, liveness_passed: boolean }
+      notes: "raw selfie deleted server-side after scoring; only score persisted"
+
+    POST /bookings/{bookingId}/contract:
+      auth: required
+      response: { redirectUrl: string, contractId: string }
+      notes: "generates bailment PDF, redirectUrl points to /bookings/{id}/esign in mock mode"
+
+    GET /bookings/{bookingId}/contract/status:
+      auth: required
+      response: { signed: boolean, pdfUrl: string | null, documentHash: string | null }
+
+    POST /api/mock/esign/complete:
+      internal: true
+      description: "Fired by the mock OTP page on submit."
+      request: { contractId: string, mockOtp: string }
+      response: { ok: true }
+      side_effect: "contracts.status -> signed, booking advances to contract_signed"
+
+# =============================================================================
+# LISTINGS
+# =============================================================================
+listings:
+  POST /listings:
+    auth: required
+    requires: kyc_verified
+    request:
+      title: string
+      category: "construction|garden|home_repair|plumbing|electrical|cleaning"
+      description: string
+      declared_value_paise: integer
+      price_per_day_paise: integer
+      photos: [string]        # URLs, uploaded separately via /uploads
+      location: { lat: number, lng: number, address: string }
+    response: { listingId: string, status: "draft" }
+
+  GET /listings:
+    query:
+      category: string?
+      lat: number?
+      lng: number?
+      radius_km: number?
+      q: string?              # free-text search
+      page: integer?
+      limit: integer?
+    response:
+      items:
+        - listingId: string
+          title: string
+          category: string
+          price_per_day_paise: integer
+          owner_rating: number
+          owner_verified: boolean
+          distance_km: number
+          thumbnail_url: string
+      page: integer
+      total: integer
+
+  GET /listings/{listingId}:
+    response:
+      listingId: string
+      title: string
+      description: string
+      category: string
+      declared_value_paise: integer
+      price_per_day_paise: integer
+      photos: [string]
+      owner: { name: string, rating: number, verified_badge: boolean, listings_count: integer }
+      availability: [{ date: string, available: boolean }]
+
+  PATCH /listings/{listingId}:
+    auth: required
+    owner_only: true
+    request: "partial listing fields"
+    response: { listingId: string, status: string }
+
+  DELETE /listings/{listingId}:
+    auth: required
+    owner_only: true
+    response: { archived: true }
+
+# =============================================================================
+# BOOKINGS
+# =============================================================================
+bookings:
+  POST /bookings:
+    auth: required
+    requires: kyc_verified
+    request:
+      listingId: string
+      start_date: string
+      end_date: string
+    response:
+      bookingId: string
+      status: "draft"
+      pricing:
+        rental_fee_paise: integer
+        platform_fee_paise: integer      # 15% of rental_fee
+        insurance_premium_paise: integer # based on declared_value tier
+        deposit_paise: integer
+        total_due_paise: integer
+
+  GET /bookings/{bookingId}:
+    auth: required
+    response:
+      bookingId: string
+      status: string
+      listing: { listingId: string, title: string, thumbnail_url: string }
+      owner: { name: string, verified_badge: boolean }
+      renter: { name: string, verified_badge: boolean }
+      pricing: "same shape as POST /bookings response.pricing"
+      start_date: string
+      end_date: string
+
+  GET /bookings:
+    auth: required
+    query: { role: "owner|renter", status: string?, page: integer?, limit: integer? }
+    response: { items: [ "booking summary objects" ], page: integer, total: integer }
+
+  POST /bookings/{bookingId}/accept:
+    auth: required
+    owner_only: true
+    response: { bookingId: string, status: string }
+
+  POST /bookings/{bookingId}/reject:
+    auth: required
+    owner_only: true
+    request: { reason: string? }
+    response: { bookingId: string, status: "draft" }
+
+  POST /bookings/{bookingId}/cancel:
+    auth: required
+    response: { bookingId: string, status: "cancelled", refund_paise: integer }
+
+# =============================================================================
+# PAYMENTS / DEPOSIT ESCROW / INSURANCE — mocked wrapper around Razorpay-shaped
+# calls. Do NOT call a real payment gateway in the hackathon build; stub the
+# same shape so swapping in Razorpay Marketplace later is a provider swap only.
+# =============================================================================
+payments:
+  env_switch: "PAYMENT_PROVIDER = mock | razorpay (mock only, implemented)"
+
+  POST /bookings/{bookingId}/pay:
+    auth: required
+    requires: contract_signed
+    request: { payment_method: "mock_upi|mock_card" }
+    response:
+      bookingId: string
+      status: "deposit_held"
+      escrow_ref: string
+      breakdown:
+        rental_fee_paise: integer
+        platform_fee_paise: integer
+        insurance_premium_paise: integer
+        deposit_paise: integer
+
+  POST /bookings/{bookingId}/handover:
+    auth: required
+    request:
+      multipart: { photos: [file] }   # timestamped condition photos
+      captured_by: "owner|renter"
+    response:
+      bookingId: string
+      status: string                  # advances toward handover_confirmed / active
+      evidence: [{ photoUrl: string, sha256: string, captured_at: string }]
+
+  POST /bookings/{bookingId}/return:
+    auth: required
+    request: { multipart: { photos: [file] }, condition_ok: boolean, notes: string? }
+    response:
+      bookingId: string
+      status: "return_confirmed | disputed"
+      deposit_release:
+        amount_released_paise: integer
+        amount_withheld_paise: integer
+      payout:
+        owner_amount_paise: integer
+
+  POST /bookings/{bookingId}/dispute:
+    auth: required
+    request: { reason: string, evidence_notes: string? }
+    response: { bookingId: string, status: "disputed", disputeId: string }
+
+  GET /disputes/{disputeId}:
+    auth: required
+    response:
+      disputeId: string
+      bookingId: string
+      status: "open|resolved"
+      evidence: [{ photoUrl: string, sha256: string, captured_by: string, captured_at: string }]
+      resolution: { outcome: string, deposit_split: object } | null
+
+# =============================================================================
+# RATINGS / REPUTATION
+# =============================================================================
+ratings:
+  POST /bookings/{bookingId}/rate:
+    auth: required
+    request: { stars: integer, comment: string? }
+    response: { ratingId: string, new_average: number }
+
+  GET /users/{userId}/ratings:
+    response: { average: number, count: integer, recent: [{ stars: integer, comment: string?, created_at: string }] }
+
+# =============================================================================
+# UPLOADS — shared helper for listing photos, selfies, handover evidence.
+# =============================================================================
+uploads:
+  POST /uploads/sign:
+    auth: required
+    request: { filename: string, content_type: string, purpose: "listing_photo|selfie|handover_evidence" }
+    response: { uploadUrl: string, publicUrl: string, expires_at: string }
+    notes: "returns a Supabase Storage signed URL; frontend PUTs the file directly to uploadUrl"
+
+# =============================================================================
+# WEBHOOKS — internal only, not called by frontend
+# =============================================================================
+webhooks:
+  POST /webhooks/mock-digilocker:
+    internal: true
+  POST /webhooks/mock-esign:
+    internal: true
+  POST /webhooks/mock-payment:
+    internal: true
+
+# =============================================================================
+# ERROR CODES — shared vocabulary so frontend can branch on `code`, not on
+# parsing `message` strings.
+# =============================================================================
+error_codes:
+  - AUTH_REQUIRED
+  - AUTH_INVALID_OTP
+  - KYC_NOT_VERIFIED
+  - CONTRACT_NOT_SIGNED
+  - BOOKING_STATE_INVALID       # attempted an out-of-order transition
+  - LISTING_NOT_FOUND
+  - BOOKING_NOT_FOUND
+  - NOT_OWNER
+  - NOT_RENTER
+  - INSUFFICIENT_DEPOSIT
+  - VALIDATION_ERROR
+
+# =============================================================================
+# CHANGE LOG — moved out of this file. See /updatelog.yaml (repo root),
+# which both models read in full every iteration. Append there, not here.
+# =============================================================================

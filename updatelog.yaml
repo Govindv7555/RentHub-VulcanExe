@@ -1,0 +1,53 @@
+# =============================================================================
+# KIRAMART — updatelog.yaml
+# APPEND-ONLY. Read this file IN FULL at the start of EVERY iteration —
+# both frontend and backend — before writing any code. It's short by design;
+# don't skip it because it looks routine.
+#
+# Purpose: spec.yaml is the full contract but it's long, and re-reading it
+# top to bottom every iteration wastes time. This file is the fast diff —
+# it tells you what changed in spec.yaml since the last time you looked, so
+# you know exactly which section to re-open there.
+#
+# RULES FOR WRITING AN ENTRY:
+#   - Append to the END of `entries:` — never edit or delete a past entry.
+#   - One entry per meaningful change to spec.yaml (new endpoint, changed
+#     shape, changed state machine, changed provider/env behavior). Typos
+#     and comment-only edits in spec.yaml don't need an entry.
+#   - Always name the exact section/endpoint changed, so the other model
+#     can jump straight to it in spec.yaml instead of searching.
+#   - Always fill `by:` with which side made the change (frontend|backend)
+#     — the other side is the one who most needs to notice this.
+#   - Never rewrite spec.yaml without also appending here in the same commit.
+#
+# Format per entry:
+#   - date: "iteration N" or a real timestamp, either is fine, just be consistent
+#     by: frontend | backend
+#     section: dotted path into spec.yaml, e.g. bookings./bookings/{id}/pay
+#     change: one sentence, what changed and why
+#     action_needed: what the OTHER side must do about it, or "none"
+# =============================================================================
+
+entries:
+  - date: "iteration 0"
+    by: backend
+    section: "(whole file)"
+    change: "spec.yaml created — full initial contract for auth, trust flow, listings, bookings, payments, ratings, uploads."
+    action_needed: "read spec.yaml in full once before starting any work."
+
+  - date: "iteration 0"
+    by: backend
+    section: "trust"
+    change: "trust-flow handoff detail (mock UI requirements, PDF watermarking, legal basis, privacy rules) merged directly into spec.yaml's trust section. There is no separate handoff file anymore."
+    action_needed: "if you had the old separate file open, discard it — spec.yaml is now the only reference."
+
+# ---------------------------------------------------------------------------
+# Add new entries below this line as the build progresses. Example shape
+# for the next real entry (delete this comment block once you've added one):
+#
+#   - date: "iteration 3"
+#     by: backend
+#     section: "bookings./bookings/{bookingId}/pay"
+#     change: "added insurance_premium_paise to the response breakdown, was missing"
+#     action_needed: "frontend: render the extra line in the payment summary screen"
+# ---------------------------------------------------------------------------
