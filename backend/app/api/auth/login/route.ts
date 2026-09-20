@@ -21,7 +21,7 @@ export async function POST(req: NextRequest) {
     const userExists = existingUsers.users.find(u => u.phone === phone);
     
     if (!userExists) {
-      return errorResponse("VALIDATION_ERROR", "User not found", 404);
+      return errorResponse("VALIDATION_ERROR", "User not found", 400);
     }
 
     return successResponse({ otpSent: true });

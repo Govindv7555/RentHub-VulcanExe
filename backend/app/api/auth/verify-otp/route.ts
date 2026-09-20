@@ -34,13 +34,29 @@ export async function POST(req: NextRequest) {
       return errorResponse("AUTH_INVALID_OTP", "Failed to verify: " + (error?.message || "unknown"), 401);
     }
 
-    // Check if new user (for our logic, if created within the last 10 seconds)
-    const createdAt = new Date(data.user.created_at);
-    const now = new Date();
-    const isNewUser = (now.getTime() - createdAt.getTime()) < 10000;
+    // Check if user exists in public.users
+    const userId = data.user.id;
+    const { data: dbUser } = await supabaseAdmin
+      .from("users")
+      .select("id")
+      .eq("id", userId)
+      .single();
+
+    let isNewUser = false;
+    if (!dbUser) {
+      isNewUser = true;
+      const phoneMasked = phone.slice(0, -4).replace(/./g, '*') + phone.slice(-4);
+      const name = data.user.user_metadata?.name || "User";
+      
+      await supabaseAdmin.from("users").insert({
+        id: userId,
+        phone_masked: phoneMasked,
+        name,
+      });
+    }
 
     return successResponse({
-      userId: data.user.id,
+      userId,
       token: data.session.access_token,
       isNewUser,
     });

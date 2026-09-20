@@ -38,23 +38,9 @@ export async function POST(req: NextRequest) {
     }
 
     const userId = authData.user.id;
-    const phoneMasked = phone.slice(0, -4).replace(/./g, '*') + phone.slice(-4);
-
-    // Insert into public.users
-    const { error: dbError } = await supabaseAdmin.from("users").insert({
-      id: userId,
-      phone_masked: phoneMasked,
-      name,
-    });
-
-    if (dbError) {
-      // Cleanup if DB insert fails
-      await supabaseAdmin.auth.admin.deleteUser(userId);
-      return errorResponse("VALIDATION_ERROR", "Failed to create user profile");
-    }
-
     return successResponse({ userId, otpSent: true });
   } catch (error: any) {
     return errorResponse("INTERNAL_ERROR", error.message, 500);
   }
 }
+
