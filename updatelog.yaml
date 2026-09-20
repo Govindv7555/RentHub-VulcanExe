@@ -147,3 +147,9 @@ entries:
     change: >
       Added Email/Password and Google OAuth endpoints to spec: `POST /auth/signup/email`, `POST /auth/login/email`, and `POST /auth/google`.
     action_needed: "backend: Implement Email Auth provider APIs to replace/augment the phone Auth provider when the backend is rebuilt."
+
+  - date: "iteration 8"
+    by: backend
+    section: "listings"
+    change: "Implemented POST /api/uploads/sign with bucket routing: listing_photo -> listing-photos (returns publicUrl), handover_evidence -> handover-photos (private, no publicUrl), selfie/id_document -> renthub-uploads (private). Implemented GET/POST /api/listings and GET/PATCH/DELETE /api/listings/[id]. POST enforces KYC, PATCH/DELETE enforce ownership. Location radius filtering is currently basic text/category filtering only. Next.js 15 dynamic params are properly awaited."
+    action_needed: "frontend: Use /api/uploads/sign before creating listings. Use the returned publicUrl for photos. Listings POST requires you to pass photos array. Listings GET returns `items`, `page`, `total`."
