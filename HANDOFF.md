@@ -1,4 +1,4 @@
-# KiraMart — START HERE
+# RentHub — START HERE
 
 This repo has three files that both the frontend and backend models must
 read to stay in sync. Read them in this order, at these intervals:

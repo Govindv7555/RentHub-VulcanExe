@@ -1,5 +1,5 @@
 # =============================================================================
-# KIRAMART — spec.yaml
+# RENTHUB — spec.yaml
 # SINGLE SOURCE OF TRUTH for the API contract between frontend and backend.
 #
 # Read /HANDOFF.md at repo root FIRST — it names the read order and interval
@@ -20,7 +20,7 @@
 # =============================================================================
 
 meta:
-  project: KiraMart
+  project: RentHub
   description: >
     Insured C2C marketplace for renting home/garden/construction equipment.
     Hackathon build, 32h. This spec covers every API surface: auth, listings,

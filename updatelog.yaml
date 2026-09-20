@@ -1,5 +1,5 @@
 # =============================================================================
-# KIRAMART — updatelog.yaml
+# RENTHUB — updatelog.yaml
 # APPEND-ONLY. Read this file IN FULL at the start of EVERY iteration —
 # both frontend and backend — before writing any code. It's short by design;
 # don't skip it because it looks routine.
@@ -62,7 +62,7 @@ entries:
     section: "(project setup, no spec.yaml section)"
     change: >
       Live Supabase project created. schema.sql applied via SQL Editor.
-      Storage bucket `kiramart-uploads` created (private). Phone auth
+      Storage bucket `renthub-uploads` created (private). Phone auth
       provider enabled. .env / .env.example added at repo root with
       SUPABASE_URL, SUPABASE_ANON_KEY, SUPABASE_SERVICE_ROLE_KEY.
     action_needed: >

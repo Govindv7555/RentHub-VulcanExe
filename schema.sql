@@ -1,5 +1,5 @@
 -- =============================================================================
--- KIRAMART — schema.sql
+-- RENTHUB — schema.sql
 -- Full Postgres schema (Supabase). This is the DATABASE CONTRACT, matching
 -- spec.yaml's API CONTRACT. Read both — spec.yaml says what the API returns,
 -- this says what's actually stored. If you change a column here, update the
