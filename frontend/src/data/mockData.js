@@ -1,0 +1,91 @@
+export const mockListings = [
+  {
+    id: 'l_01',
+    title: 'Cushion Tire Forklift, 4000 lbs',
+    category: 'construction',
+    description: 'Perfect for warehouse operations. Comes with a driver.',
+    declared_value_paise: 150000000,
+    price_per_day_paise: 52400, // $524 in UI
+    price_per_week_paise: 354600,
+    price_per_month_paise: 1320400,
+    rating: 4.8,
+    reviews: 12,
+    location: { address: 'Houston, TX', lat: 29.7604, lng: -95.3698 },
+    thumbnail: 'https://images.unsplash.com/photo-1541625602330-2277a4c4618c?w=800&auto=format&fit=crop&q=60',
+    owner: { name: 'ZOZR', verified: true },
+    withDriver: true
+  },
+  {
+    id: 'l_02',
+    title: 'Bobcat Skid-Steer Loader',
+    category: 'construction',
+    description: 'Versatile loader for earthmoving and landscaping tasks.',
+    declared_value_paise: 80000000,
+    price_per_day_paise: 38000, 
+    price_per_week_paise: 240000,
+    price_per_month_paise: 850000,
+    rating: 4.5,
+    reviews: 8,
+    location: { address: 'Houston, TX', lat: 29.7604, lng: -95.3698 },
+    thumbnail: 'https://images.unsplash.com/photo-1579975765660-441369b27b3b?w=800&auto=format&fit=crop&q=60',
+    owner: { name: 'RentHub Direct', verified: true },
+    withDriver: false
+  },
+  {
+    id: 'l_03',
+    title: 'Honda 21" Self-Propelled Lawn Mower',
+    category: 'garden',
+    description: 'Gas powered, dual-blade system for excellent mulching. Easy start.',
+    declared_value_paise: 5000000,
+    price_per_day_paise: 4500, 
+    price_per_week_paise: 18000,
+    price_per_month_paise: 45000,
+    rating: 4.9,
+    reviews: 24,
+    location: { address: 'Austin, TX', lat: 30.2672, lng: -97.7431 },
+    thumbnail: 'https://images.unsplash.com/photo-1592424006240-62f7d3dd1436?w=800&auto=format&fit=crop&q=60',
+    owner: { name: 'GreenScapes', verified: true },
+    withDriver: false
+  },
+  {
+    id: 'l_04',
+    title: 'Electric Cement Mixer (5 Cu ft)',
+    category: 'home repair',
+    description: 'Portable electric mixer, perfect for small to medium concrete jobs around the house.',
+    declared_value_paise: 3500000,
+    price_per_day_paise: 6500, 
+    price_per_week_paise: 22000,
+    price_per_month_paise: 60000,
+    rating: 4.6,
+    reviews: 5,
+    location: { address: 'Dallas, TX', lat: 32.7767, lng: -96.7970 },
+    thumbnail: 'https://images.unsplash.com/photo-1504307651254-35680f356dfd?w=800&auto=format&fit=crop&q=60',
+    owner: { name: 'ToolBox Rentals', verified: false },
+    withDriver: false
+  },
+  {
+    id: 'l_05',
+    title: 'Heavy Duty Pressure Washer (3200 PSI)',
+    category: 'cleaning',
+    description: 'Gas powered pressure washer for driveways, siding, and tough stains.',
+    declared_value_paise: 4500000,
+    price_per_day_paise: 5500, 
+    price_per_week_paise: 20000,
+    price_per_month_paise: 55000,
+    rating: 4.7,
+    reviews: 18,
+    location: { address: 'Houston, TX', lat: 29.7604, lng: -95.3698 },
+    thumbnail: 'https://images.unsplash.com/photo-1621644026362-e1d52dbe2c4a?w=800&auto=format&fit=crop&q=60',
+    owner: { name: 'CleanFreak Co', verified: true },
+    withDriver: false
+  }
+];
+
+export const categories = [
+  { id: '1', name: 'Construction', icon: '🏗️', count: 1250 },
+  { id: '2', name: 'Garden', icon: '🌿', count: 850 },
+  { id: '3', name: 'Home Repair', icon: '🔨', count: 1540 },
+  { id: '4', name: 'Plumbing', icon: '🚰', count: 420 },
+  { id: '5', name: 'Electrical', icon: '⚡', count: 680 },
+  { id: '6', name: 'Cleaning', icon: '🧼', count: 930 },
+];

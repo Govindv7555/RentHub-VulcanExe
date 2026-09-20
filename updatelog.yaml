@@ -85,7 +85,8 @@ entries:
     action_needed: >
       both sides: open HANDOFF.md first from now on, before spec.yaml — it's
       the new entry point to this whole handoff system.
-    - date: "iteration 4"
+
+  - date: "iteration 4"
     by: backend
     section: "(project setup, no spec.yaml section)"
     change: >
@@ -111,16 +112,6 @@ entries:
       SUPABASE_URL and the anon key privately, and build against spec.yaml
       with mock data until endpoints are ready. Never use the service role
       key.
-# ---------------------------------------------------------------------------
-# Add new entries below this line as the build progresses. Example shape
-# for the next real entry (delete this comment block once you've added one):
-#
-#   - date: "iteration 4"
-#     by: backend
-#     section: "bookings./bookings/{bookingId}/pay"
-#     change: "added insurance_premium_paise to the response breakdown, was missing"
-#     action_needed: "frontend: render the extra line in the payment summary screen"
-# ---------------------------------------------------------------------------
 
   - date: "iteration 5"
     by: backend
@@ -128,10 +119,31 @@ entries:
     change: "Backend base initialized on http://localhost:4000. CORS configured allowing http://localhost:3000 (and OPTIONS handled natively). All errors will use `{ error: { code, message } }`. Protected endpoints will require `Authorization: Bearer <token>`."
     action_needed: "frontend: Base URL is http://localhost:4000. Send Authorization Bearer header for protected endpoints. Expect { error: { code, message } } on failures."
 
+  - date: "iteration 5"
+    by: frontend
+    section: "(project scope)"
+    change: "User request pivoted the project to focus entirely on frontend. The backend/ folder has been completely removed."
+    action_needed: "backend: Stand down or wait until new instructions. Frontend will build out exclusively using mock data against spec.yaml schemas."
+
   - date: "iteration 6"
     by: backend
     section: "auth"
     change: "Implemented all 4 auth endpoints exactly as in spec.yaml. For /auth/verify-otp, MOCK_OTP is active. Send the configured mock code (default 123456) and the backend will issue a real Supabase session using HMAC-derived dummy passwords transparently. The response returns the actual Supabase JWT. /auth/signup requires phone and name, returns userId and otpSent. (Verified: all 8 test cases passed including DB row confirmation and token scoping)."
     action_needed: "frontend: Use /auth/signup, /auth/login, /auth/verify-otp, and /auth/me exactly as documented. Use 123456 as the OTP."
 
+  - date: "iteration 6"
+    by: frontend
+    section: "listings, auth, chat"
+    change: >
+      Added Rentic feed features: `price_per_hour_paise`, `delivery_radius_km`, and `terms`
+      fields onto listings endpoints. Added `trust_score_percentage` to `auth/me` response.
+      Created a new `chat` section with `GET /chat/{bookingId}/messages` and `POST /chat/{bookingId}/messages`
+      endpoints for direct user communication.
+    action_needed: "backend: (When active again) Implement schema changes to track these new listing fields and the chat table, then add the corresponding route handlers."
 
+  - date: "iteration 7"
+    by: frontend
+    section: "auth"
+    change: >
+      Added Email/Password and Google OAuth endpoints to spec: `POST /auth/signup/email`, `POST /auth/login/email`, and `POST /auth/google`.
+    action_needed: "backend: Implement Email Auth provider APIs to replace/augment the phone Auth provider when the backend is rebuilt."

@@ -92,6 +92,15 @@ auth:
   POST /auth/login:
     request: { phone: string }
     response: { otpSent: true }
+  POST /auth/signup/email:
+    request: { email: string, password: string, name: string }
+    response: { userId: string, token: string }
+  POST /auth/login/email:
+    request: { email: string, password: string }
+    response: { userId: string, token: string }
+  POST /auth/google:
+    request: { id_token: string }
+    response: { userId: string, token: string, isNewUser: boolean }
   GET /auth/me:
     auth: required
     response:
@@ -100,6 +109,7 @@ auth:
       phone_masked: string
       kyc_verified: boolean
       rating: number
+      trust_score_percentage: integer # 0-100 composite trust engine score
       created_at: string
 
 # =============================================================================
@@ -284,9 +294,12 @@ listings:
       category: "construction|garden|home_repair|plumbing|electrical|cleaning"
       description: string
       declared_value_paise: integer
+      price_per_hour_paise: integer?  # optional hourly rate
       price_per_day_paise: integer
       photos: [string]        # URLs, uploaded separately via /uploads
       location: { lat: number, lng: number, address: string }
+      delivery_radius_km: number?
+      terms: string?          # custom rental terms/rules
     response: { listingId: string, status: "draft" }
 
   GET /listings:
@@ -318,9 +331,12 @@ listings:
       description: string
       category: string
       declared_value_paise: integer
+      price_per_hour_paise: integer?
       price_per_day_paise: integer
       photos: [string]
-      owner: { name: string, rating: number, verified_badge: boolean, listings_count: integer }
+      delivery_radius_km: number?
+      terms: string?
+      owner: { name: string, rating: number, verified_badge: boolean, listings_count: integer, trust_score_percentage: integer }
       availability: [{ date: string, available: boolean }]
 
   PATCH /listings/{listingId}:
@@ -386,6 +402,23 @@ bookings:
   POST /bookings/{bookingId}/cancel:
     auth: required
     response: { bookingId: string, status: "cancelled", refund_paise: integer }
+
+# =============================================================================
+# CHAT / MESSAGING (Rentic-style direct messaging)
+# =============================================================================
+chat:
+  GET /chat/{bookingId}/messages:
+    auth: required
+    response:
+      items:
+        - messageId: string
+          senderId: string
+          text: string
+          timestamp: string
+  POST /chat/{bookingId}/messages:
+    auth: required
+    request: { text: string }
+    response: { messageId: string, timestamp: string }
 
 # =============================================================================
 # PAYMENTS / DEPOSIT ESCROW / INSURANCE — mocked wrapper around Razorpay-shaped
