@@ -41,11 +41,56 @@ entries:
     change: "trust-flow handoff detail (mock UI requirements, PDF watermarking, legal basis, privacy rules) merged directly into spec.yaml's trust section. There is no separate handoff file anymore."
     action_needed: "if you had the old separate file open, discard it — spec.yaml is now the only reference."
 
+  - date: "iteration 1"
+    by: backend
+    section: "(new file) schema.sql + spec.yaml.database"
+    change: >
+      Added /schema.sql — full Postgres/Supabase DDL for users, listings,
+      bookings, trust-flow tables (kyc_sessions, identity_records, contracts,
+      contract_signatures, handover_evidence), payments, disputes, ratings.
+      Booking state machine is now enforced by a DB trigger
+      (check_booking_transition), matching spec.yaml state_machines.booking.
+      Added a `database:` pointer section to the top of spec.yaml.
+    action_needed: >
+      frontend: no direct action — you still only talk to the API endpoints
+      in spec.yaml, never to Postgres directly. backend: implement RLS
+      policies per table (enabled but empty in schema.sql — see its bottom
+      section) before wiring real auth.
+
+  - date: "iteration 2"
+    by: backend
+    section: "(project setup, no spec.yaml section)"
+    change: >
+      Live Supabase project created. schema.sql applied via SQL Editor.
+      Storage bucket `kiramart-uploads` created (private). Phone auth
+      provider enabled. .env / .env.example added at repo root with
+      SUPABASE_URL, SUPABASE_ANON_KEY, SUPABASE_SERVICE_ROLE_KEY.
+    action_needed: >
+      frontend: pull .env.example, request the real SUPABASE_URL and
+      SUPABASE_ANON_KEY values (not the service role key — that's
+      backend-only) to initialize the client. backend: still need to write
+      RLS policies (supabase/migrations/0002_rls_policies.sql) before any
+      endpoint touching bookings/identity_records goes live — don't skip
+      this for demo speed, empty RLS blocks all access by default anyway.
+
+  - date: "iteration 3"
+    by: backend
+    section: "(new file) HANDOFF.md"
+    change: >
+      Added /HANDOFF.md at repo root — the single top-level file naming the
+      read order and interval for spec.yaml, schema.sql, and updatelog.yaml
+      (spec.yaml once in full, schema.sql as needed, updatelog.yaml every
+      iteration in full). spec.yaml's own header comment was trimmed to
+      point at HANDOFF.md instead of duplicating the instructions.
+    action_needed: >
+      both sides: open HANDOFF.md first from now on, before spec.yaml — it's
+      the new entry point to this whole handoff system.
+
 # ---------------------------------------------------------------------------
 # Add new entries below this line as the build progresses. Example shape
 # for the next real entry (delete this comment block once you've added one):
 #
-#   - date: "iteration 3"
+#   - date: "iteration 4"
 #     by: backend
 #     section: "bookings./bookings/{bookingId}/pay"
 #     change: "added insurance_premium_paise to the response breakdown, was missing"

@@ -2,25 +2,21 @@
 # KIRAMART — spec.yaml
 # SINGLE SOURCE OF TRUTH for the API contract between frontend and backend.
 #
-# READ ORDER, EVERY ITERATION, BOTH FRONTEND AND BACKEND:
-#   1. spec.yaml       (this file)  — full contract. Read in full the first
-#      time; after that, treat it as reference and jump to the section you
-#      need rather than re-reading top to bottom.
-#   2. updatelog.yaml   — read this ONE IN FULL every iteration, no exceptions.
-#      It's the short, append-only list of what changed since spec.yaml was
-#      last stable. If updatelog.yaml references a section, open that section
-#      of spec.yaml before writing code against it.
+# Read /HANDOFF.md at repo root FIRST — it names the read order and interval
+# for this file, schema.sql, and updatelog.yaml. Don't duplicate that logic
+# here; if it needs updating, update HANDOFF.md.
 #
 # EDIT RULE: if you add, rename, or change a request/response shape —
 #   a) edit spec.yaml itself in the same commit, AND
 #   b) append one line to updatelog.yaml describing the change.
 # Do not let the running code drift from what's written here — the other
-# side's model is reading these two files, not your code.
+# side's model is reading these files, not your code.
 #
-# Commit paths: /spec.yaml and /updatelog.yaml (repo root). Together these
-# are the ONLY handoff files. Everything both models need — API contract,
-# mock KYC/eSign/face-match implementation detail, legal basis, privacy
-# rules, and the running log of changes — lives across these two files.
+# Commit paths: /HANDOFF.md, /spec.yaml, /schema.sql, /updatelog.yaml (repo
+# root). Together these are the ONLY handoff files. Everything both models
+# need — read order, API contract, database contract, mock KYC/eSign/
+# face-match implementation detail, legal basis, privacy rules, and the
+# running log of changes — lives across these four files.
 # =============================================================================
 
 meta:
@@ -42,6 +38,24 @@ meta:
     covers the need. Before changing a response shape, update this file
     first, then the code. If frontend and backend disagree about a shape,
     this file wins — fix the code, not the doc.
+
+database:
+  engine: "Postgres via Supabase"
+  schema_file: "/schema.sql (repo root) — the DATABASE CONTRACT, companion to this API CONTRACT"
+  rule: >
+    spec.yaml says what a response looks like; schema.sql says what's
+    actually stored. A response field with no matching column in schema.sql
+    (or vice versa) means one of the two files is out of date — fix it
+    before writing more code, and append an updatelog.yaml entry.
+  backend_only: >
+    Frontend never queries Postgres directly. All access goes through the
+    endpoints in this file. Supabase RLS in schema.sql is a second line of
+    defense, not a replacement for the API layer.
+  state_machine_enforcement: >
+    The booking status transitions in state_machines.booking below are
+    enforced twice: once by a Postgres trigger in schema.sql
+    (check_booking_transition), and once in backend route handlers. Keep
+    both in sync if you add or reorder a status.
 
 # -----------------------------------------------------------------------------
 # STATE MACHINES — enforced server-side. Frontend reads these to know which
