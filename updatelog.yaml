@@ -121,3 +121,10 @@ entries:
 #     change: "added insurance_premium_paise to the response breakdown, was missing"
 #     action_needed: "frontend: render the extra line in the payment summary screen"
 # ---------------------------------------------------------------------------
+
+  - date: "iteration 5"
+    by: backend
+    section: "auth"
+    change: "Backend base initialized on http://localhost:4000. CORS configured allowing http://localhost:3000 (and OPTIONS handled natively). All errors will use `{ error: { code, message } }`. Protected endpoints will require `Authorization: Bearer <token>`."
+    action_needed: "frontend: Base URL is http://localhost:4000. Send Authorization Bearer header for protected endpoints. Expect { error: { code, message } } on failures."
+
