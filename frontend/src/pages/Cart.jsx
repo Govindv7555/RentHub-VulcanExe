@@ -91,30 +91,23 @@ export default function Cart() {
   const totalFees = subtotal + T + deliveryFee;
 
   // Dynamic Safety Deposit Logic
-  const getSafetyDepositPercentage = (valueInPaise) => {
-    const valueRS = valueInPaise / 100;
-    let minPct, maxPct;
-    
-    if (valueRS < 1000) {
-      minPct = 50; maxPct = 50;
-    } else if (valueRS >= 2000 && valueRS <= 15000) {
-      minPct = 15; maxPct = 20;
-    } else { // > 15000
-      minPct = 5; maxPct = 10;
-    }
+  const getTrustPercentage = () => {
+    if (!user || (user.transactions_count || 0) < 5) return 0;
+    // Calculate average trust percentage dynamically based on average rating (0-5 scale mapped to 0-100)
+    return (user.rating_avg / 5) * 100;
+  };
 
-    if (!user || (user.purchases_count || 0) <= 5) {
-      return maxPct;
-    }
-    
-    const rep = user.reputation_score || 0; 
-    // Slide from maxPct (rep=0) to minPct (rep=100)
-    return maxPct - ((rep / 100) * (maxPct - minPct));
+  const getSafetyDepositPercentage = () => {
+    const trustPercent = getTrustPercentage();
+    if (trustPercent < 80) return 10;
+    return 5;
   };
 
   const totalSafetyDeposit = cartItems.reduce((acc, item) => {
-    const pct = getSafetyDepositPercentage(item.declared_value_paise);
-    return acc + ((item.declared_value_paise / 100) * (pct / 100));
+    const pct = getSafetyDepositPercentage();
+    const duration = calculateDuration() || 1;
+    const totalRevenue = (item.price_per_day_paise / 100) * duration;
+    return acc + (totalRevenue * (pct / 100));
   }, 0);
 
   const handleNextStep = () => {
@@ -268,7 +261,7 @@ export default function Cart() {
                 <div className="animate-fade-in-up space-y-6">
                   <h2 className="text-2xl font-bold text-white mb-2">Safety Deposit Phase</h2>
                   <div className="bg-amber/10 border border-amber/30 p-4 rounded text-sm text-white/80">
-                     <p className="mb-2"><strong>Smart Deposit Calculation:</strong> Because you have {user?.purchases_count || 0} past purchases and a Reputation Score of {user?.reputation_score || 0}, your safety deposit is dynamically reduced!</p>
+                     <p className="mb-2"><strong>Smart Deposit Calculation:</strong> Because you have {user?.transactions_count || 0} past transactions and a Trust Percentage of {getTrustPercentage()}%, your safety deposit is set to {getSafetyDepositPercentage()}% of total rental revenue.</p>
                   </div>
 
                   <div className="bg-background p-6 rounded-lg border border-surfaceLight">

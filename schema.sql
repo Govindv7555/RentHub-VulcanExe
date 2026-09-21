@@ -19,6 +19,8 @@ create table users (
   kyc_verified  boolean not null default false,
   rating_avg    numeric(2,1) not null default 0,   -- denormalized, updated by trigger on ratings insert
   rating_count  integer not null default 0,
+  transactions_count integer not null default 0,   -- feeds into dynamic Trust Engine percentage
+  trust_percentage   numeric(5,2) not null default 0, -- dynamic denormalized computed store
   created_at    timestamptz not null default now()
 );
 

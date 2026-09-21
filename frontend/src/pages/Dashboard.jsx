@@ -16,11 +16,15 @@ export default function Dashboard() {
     }
   }, [user]);
 
-  // Hardcode a mock trust structure representing rentic's logic
-  const trustScore = 75; // Out of 100
+  const getTrustPercentage = () => {
+    if (!user || (user.transactions_count || 0) < 5) return 0;
+    return (user.rating_avg / 5) * 100;
+  };
+  
+  const trustScore = getTrustPercentage(); 
   const profileComplete = 100;
-  const idVerification = 80; // Assuming mock verified partly
-  const reviewsScore = 45; // No reviews yet pulls it down
+  const idVerification = user?.kyc_verified ? 100 : 80; 
+  const reviewsScore = user?.transactions_count > 0 ? (user.rating_avg / 5) * 100 : 0; 
 
   if (!user) {
      return (

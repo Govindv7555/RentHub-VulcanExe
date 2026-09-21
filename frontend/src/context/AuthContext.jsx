@@ -20,8 +20,8 @@ export function AuthProvider({ children }) {
         phone: '9876543210',
         password: 'password123',
         kyc_verified: false, // will switch to true manually in KYC
-        purchases_count: 6,
-        reputation_score: 75
+        transactions_count: 6,
+        rating_avg: 4.2
       }]));
     }
     // User requested NO AUTO LOGIN AT START so they can test the buying flow gates.
@@ -37,8 +37,8 @@ export function AuthProvider({ children }) {
       email,
       password,
       kyc_verified: false,
-      purchases_count: 0,
-      reputation_score: 0
+      transactions_count: 0,
+      rating_avg: 0
     };
     db.push(newUser);
     localStorage.setItem('renthub_users_db', JSON.stringify(db));
