@@ -11,7 +11,7 @@ export const mockListings = [
     rating: 4.8,
     reviews: 12,
     location: { address: 'Mumbai, MH', lat: 19.0760, lng: 72.8777 },
-    thumbnail: 'https://images.unsplash.com/photo-1541625602330-2277a4c4618c?w=800&auto=format&fit=crop&q=60',
+    thumbnail: 'https://images.unsplash.com/photo-1581092160607-ee22621dd758?w=800&q=80',
     owner: { name: 'ZOZR', verified: true },
     withDriver: true
   },
@@ -27,7 +27,7 @@ export const mockListings = [
     rating: 4.5,
     reviews: 8,
     location: { address: 'New Delhi, DL', lat: 28.6139, lng: 77.2090 },
-    thumbnail: 'https://images.unsplash.com/photo-1504307651254-35680f356dfd?w=800&auto=format&fit=crop&q=60',
+    thumbnail: 'https://images.unsplash.com/photo-1504148455328-c376907d081c?w=800&q=80',
     owner: { name: 'RentHub Direct', verified: true },
     withDriver: false
   },
@@ -43,7 +43,7 @@ export const mockListings = [
     rating: 4.9,
     reviews: 24,
     location: { address: 'Bangalore, KA', lat: 12.9716, lng: 77.5946 },
-    thumbnail: 'https://images.unsplash.com/photo-1621644026362-e1d52dbe2c4a?w=800&auto=format&fit=crop&q=60',
+    thumbnail: 'https://images.unsplash.com/photo-1585827552668-d0728bdf64cf?w=800&q=80',
     owner: { name: 'GreenScapes', verified: true },
     withDriver: false
   },
@@ -59,7 +59,7 @@ export const mockListings = [
     rating: 4.6,
     reviews: 5,
     location: { address: 'Chennai, TN', lat: 13.0827, lng: 80.2707 },
-    thumbnail: 'https://images.unsplash.com/photo-1504307651254-35680f356dfd?w=800&auto=format&fit=crop&q=60',
+    thumbnail: 'https://images.unsplash.com/photo-1589939705384-5185137a7f0f?w=800&q=80',
     owner: { name: 'ToolBox Rentals', verified: false },
     withDriver: false
   },
@@ -75,7 +75,7 @@ export const mockListings = [
     rating: 4.7,
     reviews: 18,
     location: { address: 'Hyderabad, TS', lat: 17.3850, lng: 78.4867 },
-    thumbnail: 'https://images.unsplash.com/photo-1621644026362-e1d52dbe2c4a?w=800&auto=format&fit=crop&q=60',
+    thumbnail: 'https://images.unsplash.com/photo-1585827552668-d0728bdf64cf?w=800&q=80',
     owner: { name: 'CleanFreak Co', verified: true },
     withDriver: false
   }

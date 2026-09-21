@@ -13,6 +13,16 @@ export default function CreateListing() {
   const [description, setDescription] = useState('');
   const [price, setPrice] = useState('45');
   const [category, setCategory] = useState('home repair');
+  const [thumbnailBase64, setThumbnailBase64] = useState('');
+  
+  const handleImageUpload = (e) => {
+    const file = e.target.files?.[0];
+    if (!file) return;
+    const reader = new FileReader();
+    reader.onload = (event) => setThumbnailBase64(event.target.result);
+    // Note: Compress logic could go here, but base64 handles typical modern payloads fine up to quota limits.
+    reader.readAsDataURL(file);
+  };
   
   const navigate = useNavigate();
   const { user } = useAuth();
@@ -42,7 +52,7 @@ export default function CreateListing() {
         rating: 0,
         reviews: 0,
         location: { address: 'Mumbai, MH', lat: 19.0760, lng: 72.8777 },
-        thumbnail: 'https://images.unsplash.com/photo-1572981779307-38b8cabb2407?w=800&auto=format&fit=crop&q=60',
+        thumbnail: thumbnailBase64 || 'https://images.unsplash.com/photo-1541625602330-2277a4c4618c?w=800&q=80',
         withDriver: false,
         isBooked: false
       });
@@ -87,12 +97,19 @@ export default function CreateListing() {
             <div className="space-y-8 animate-fade-in-up">
               <div>
                 <label className="text-[10px] uppercase font-bold text-textMuted mb-2 block">Upload Photos</label>
-                <div className="border-2 border-dashed border-surfaceLight hover:border-amber/50 transition-colors rounded-lg bg-surface/50 h-48 flex flex-col items-center justify-center cursor-pointer">
-                  <div className="w-12 h-12 bg-surface rounded-full flex items-center justify-center mb-3">
-                    <Camera size={20} className="text-textMuted" />
-                  </div>
-                  <p className="font-semibold text-white text-sm">Drag and drop images here</p>
-                  <p className="text-xs text-textMuted mt-1">Make sure you show any wear & tear</p>
+                <div className="relative border-2 border-dashed border-surfaceLight hover:border-amber/50 transition-colors rounded-lg bg-surface/50 h-48 flex flex-col items-center justify-center cursor-pointer overflow-hidden">
+                  <input type="file" accept="image/*" onChange={handleImageUpload} className="absolute inset-0 w-full h-full opacity-0 cursor-pointer z-10" title="Upload Image" />
+                  {thumbnailBase64 ? (
+                     <img src={thumbnailBase64} alt="Preview" className="absolute inset-0 w-full h-full object-cover opacity-90" />
+                  ) : (
+                    <>
+                      <div className="w-12 h-12 bg-surface rounded-full flex items-center justify-center mb-3">
+                        <Camera size={20} className="text-textMuted" />
+                      </div>
+                      <p className="font-semibold text-white text-sm">Drag and drop images here or click to browse</p>
+                      <p className="text-xs text-textMuted mt-1">Make sure you show any wear & tear</p>
+                    </>
+                  )}
                 </div>
               </div>
               
