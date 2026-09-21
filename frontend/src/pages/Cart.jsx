@@ -72,8 +72,13 @@ export default function Cart() {
   }, 0);
 
   const handleNextStep = () => {
+    if (!user) {
+      alert("Please log in to proceed with this purchase.");
+      navigate('/login');
+      return;
+    }
     setCurrentStep(s => s + 1);
-    window.scrollTo(0,0);
+    window.scrollTo(0, 0);
   };
 
   const handlePayment = () => {
