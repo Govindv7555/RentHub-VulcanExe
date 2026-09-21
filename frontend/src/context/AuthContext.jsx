@@ -10,20 +10,28 @@ export function AuthProvider({ children }) {
 
   // Mock initial load
   useEffect(() => {
-    // Seed DB with Jane Smith if empty
-    const db = localStorage.getItem('renthub_users_db');
-    if (!db) {
-      localStorage.setItem('renthub_users_db', JSON.stringify([{
-        id: 'user_jane',
-        name: 'Jane Smith',
-        email: 'janesmith@gmail.com',
-        phone: '9876543210',
-        password: 'password123',
-        kyc_verified: false, // will switch to true manually in KYC
-        transactions_count: 6,
-        rating_avg: 4.2
-      }]));
+    let db = JSON.parse(localStorage.getItem('renthub_users_db')) || [];
+    
+    // Force Jane to 90% Trust
+    let jane = db.find(u => u.email === 'janesmith@gmail.com');
+    if (!jane) {
+      jane = { id: 'user_jane', name: 'Jane Smith', email: 'janesmith@gmail.com', phone: '9876543210', password: 'password123', kyc_verified: false };
+      db.push(jane);
     }
+    jane.transactions_count = 6;
+    jane.rating_avg = 4.5; // (4.5 / 5) * 100 = 90%
+
+    // Force Govind to 75% Trust
+    let govind = db.find(u => u.email === 'govindg@gmail.com');
+    if (!govind) {
+      govind = { id: 'user_govind', name: 'Govind G', email: 'govindg@gmail.com', phone: '9876543212', password: 'password123', kyc_verified: false };
+      db.push(govind);
+    }
+    govind.transactions_count = 6;
+    govind.rating_avg = 3.75; // (3.75 / 5) * 100 = 75%
+
+    localStorage.setItem('renthub_users_db', JSON.stringify(db));
+
     // User requested NO AUTO LOGIN AT START so they can test the buying flow gates.
     setLoading(false);
   }, []);
