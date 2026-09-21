@@ -1,4 +1,4 @@
-# Notdefined-VulcanExe
+#RentHUb-VulcanExe
 
 32-hour hackathon · 3-person team · Govind, Sidhu, Denny
 
