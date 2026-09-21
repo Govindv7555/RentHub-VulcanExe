@@ -2,6 +2,8 @@ import { useState } from 'react';
 import { Camera, MapPin, CheckCircle, Info } from 'lucide-react';
 import { cn } from '../lib/utils';
 import { useNavigate } from 'react-router-dom';
+import { useAuth } from '../context/AuthContext';
+import { saveListing } from '../data/mockData';
 
 const steps = ['Category', 'Details & Pricing', 'Location', 'Terms'];
 
