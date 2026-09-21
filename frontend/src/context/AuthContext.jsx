@@ -10,12 +10,56 @@ export function AuthProvider({ children }) {
 
   // Mock initial load
   useEffect(() => {
+    // Seed DB with Jane Smith if empty
+    const db = localStorage.getItem('renthub_users_db');
+    if (!db) {
+      localStorage.setItem('renthub_users_db', JSON.stringify([{
+        id: 'user_jane',
+        name: 'Jane Smith',
+        email: 'janesmith@gmail.com',
+        phone: '9876543210',
+        password: 'password123',
+        kyc_verified: false, // will switch to true manually in KYC
+        purchases_count: 6,
+        reputation_score: 75
+      }]));
+    }
     // User requested NO AUTO LOGIN AT START so they can test the buying flow gates.
     setLoading(false);
   }, []);
 
-  const login = (userData, token) => {
-    localStorage.setItem('token', token);
+  const registerUser = (email, password) => {
+    let db = JSON.parse(localStorage.getItem('renthub_users_db')) || [];
+    if (db.find(u => u.email === email)) return null; // Exists
+    const newUser = {
+      id: `user_${Date.now()}`,
+      name: email.split('@')[0],
+      email,
+      password,
+      kyc_verified: false,
+      purchases_count: 0,
+      reputation_score: 0
+    };
+    db.push(newUser);
+    localStorage.setItem('renthub_users_db', JSON.stringify(db));
+    return newUser;
+  };
+
+  const attemptLogin = (email, password) => {
+    const db = JSON.parse(localStorage.getItem('renthub_users_db')) || [];
+    const matched = db.find(u => u.email === email && u.password === password);
+    return matched || null;
+  };
+
+  const loginUser = (userData) => {
+    // Update the database to reflect any changes (like KYC being true!)
+    let db = JSON.parse(localStorage.getItem('renthub_users_db')) || [];
+    const index = db.findIndex(u => u.id === userData.id);
+    if (index !== -1) {
+      db[index] = userData;
+      localStorage.setItem('renthub_users_db', JSON.stringify(db));
+    }
+    localStorage.setItem('token', 'mock_jwt_token_' + userData.id);
     setUser(userData);
   };
 
@@ -30,7 +74,7 @@ export function AuthProvider({ children }) {
   };
 
   return (
-    <AuthContext.Provider value={{ user, loading, login, logout, validatePassword }}>
+    <AuthContext.Provider value={{ user, loading, loginUser, logout, validatePassword, registerUser, attemptLogin }}>
       {children}
     </AuthContext.Provider>
   );

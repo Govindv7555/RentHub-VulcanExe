@@ -43,8 +43,18 @@ export default function Cart() {
     start: '2 Aug 2026', 
     end: '3 Aug 2026',
     startTime: 'Afternoon (2-5 PM)',
-    endTime: 'Midday (10-2 PM)'
+    endTime: 'Midday (10-2 PM)',
+    selectedDay: 2
   });
+
+  const handleDateClick = (day) => {
+    setDateRange({
+       ...dateRange,
+       start: `${day} Aug 2026`,
+       end: `${day + 1} Aug 2026`,
+       selectedDay: day
+    });
+  };
   const [deliveryLocation, setDeliveryLocation] = useState('New Delhi, DL');
   const [paymentMethod, setPaymentMethod] = useState('card');
   const [password, setPassword] = useState('');
@@ -179,9 +189,20 @@ export default function Cart() {
                        
                        <div className="grid grid-cols-7 gap-1 text-center text-sm text-white">
                           {[27,28,29,30,31,1].map(d => <div key={'prev'+d} className="p-2 text-white/20">{d}</div>)}
-                          <div className="p-2 bg-amber text-black font-bold rounded-l-md cursor-pointer hover:bg-amber/80 transition-colors">2</div>
-                          <div className="p-2 bg-amber/50 text-white font-bold rounded-r-md border border-amber cursor-pointer hover:bg-amber/60 transition-colors">3</div>
-                          {[4,5,6,7,8,9,10,11,12].map(d => <div key={d} className="p-2 hover:bg-white/10 rounded cursor-pointer transition-colors" onClick={() => alert('Calendar interaction mocked')}>{d}</div>)}
+                          {[2,3,4,5,6,7,8,9,10,11,12].map(d => (
+                            <div 
+                              key={d} 
+                              onClick={() => handleDateClick(d)}
+                              className={cn(
+                                "p-2 rounded cursor-pointer transition-colors font-bold",
+                                dateRange.selectedDay === d ? "bg-amber text-black" : 
+                                dateRange.selectedDay + 1 === d ? "bg-amber/50 text-white border border-amber" : 
+                                "hover:bg-white/10 font-normal"
+                              )}
+                            >
+                              {d}
+                            </div>
+                          ))}
                        </div>
                        <p className="mt-6 text-sm font-bold text-white tracking-tight border-t border-surfaceLight pt-4">Duration: 2 Days</p>
                     </div>

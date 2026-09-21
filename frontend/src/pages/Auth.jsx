@@ -1,32 +1,48 @@
 import { useState } from 'react';
-import { useAuth } from '../context/AuthContext';
 import { useNavigate } from 'react-router-dom';
+import { useAuth } from '../context/AuthContext';
+import { ShieldAlert } from 'lucide-react';
+import { cn } from '../lib/utils';
 import { ShieldAlert } from 'lucide-react';
 
 export default function Auth() {
+  const [isSignUp, setIsSignUp] = useState(false);
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
+  
   const [showKycPopup, setShowKycPopup] = useState(false);
   const [error, setError] = useState('');
+  const [tempUser, setTempUser] = useState(null);
 
-  const { login, logout } = useAuth();
+  const { loginUser, registerUser, attemptLogin, logout } = useAuth();
   const navigate = useNavigate();
 
-  const handleEmailLogin = (e) => {
+  const handleSubmit = (e) => {
     e.preventDefault();
-    if (email === 'janesmith@gmail.com' && password === 'password123') {
-      login({
-        id: 'demo_user',
-        name: 'Jane Smith',
-        phone: '9876543210',
-        kyc_verified: false,
-        purchases_count: 6,
-        reputation_score: 75,
-        password: 'password123'
-      }, 'mock_jwt_token');
+    setError('');
+    
+    if (isSignUp) {
+      const newUser = registerUser(email, password);
+      if (!newUser) {
+        setError('Email already exists. Please log in.');
+        return;
+      }
+      setTempUser(newUser);
+      loginUser({ ...newUser, kyc_verified: false });
       setShowKycPopup(true);
     } else {
-      setError('Invalid credentials. Use janesmith@gmail.com / password123');
+      const existingUser = attemptLogin(email, password);
+      if (!existingUser) {
+        setError('Invalid credentials.');
+        return;
+      }
+      loginUser(existingUser);
+      if (!existingUser.kyc_verified) {
+        setTempUser(existingUser);
+        setShowKycPopup(true);
+      } else {
+        navigate('/');
+      }
     }
   };
 
@@ -45,14 +61,26 @@ export default function Auth() {
         {/* Amber accent bar */}
         <div className="absolute top-0 left-0 right-0 h-1 bg-amber"></div>
         
-        <div className="text-center mb-8">
-          <h2 className="text-2xl font-bold text-white mb-2">Welcome Back</h2>
-          <p className="text-sm text-textMuted">Log in to manage your rentals.</p>
+        <div className="text-center mb-6 border-b border-surfaceLight flex">
+          <button 
+             type="button"
+             onClick={() => { setIsSignUp(false); setError(''); }}
+             className={cn("flex-1 pb-3 text-sm font-semibold transition-colors", !isSignUp ? "text-amber border-b-2 border-amber" : "text-textMuted hover:text-white")}
+          >
+             Sign In
+          </button>
+          <button 
+             type="button"
+             onClick={() => { setIsSignUp(true); setError(''); }}
+             className={cn("flex-1 pb-3 text-sm font-semibold transition-colors", isSignUp ? "text-amber border-b-2 border-amber" : "text-textMuted hover:text-white")}
+          >
+             Sign Up
+          </button>
         </div>
 
         {error && <div className="bg-red-500/10 border border-red-500/50 text-red-500 text-xs p-3 rounded mb-4">{error}</div>}
 
-        <form onSubmit={handleEmailLogin} className="space-y-6 animate-fade-in-up">
+        <form onSubmit={handleSubmit} className="space-y-6 animate-fade-in-up">
           <div>
             <label className="text-[10px] uppercase font-bold text-textMuted mb-2 block">Email Address</label>
             <input 
@@ -70,10 +98,10 @@ export default function Auth() {
               value={password}
               onChange={(e) => setPassword(e.target.value)}
               className="input-field w-full py-3" 
-              placeholder="e.g. password123"
+              placeholder={isSignUp ? "Create a secure password" : "Your password"}
             />
           </div>
-          <button type="submit" className="btn-primary w-full py-3">Sign In</button>
+          <button type="submit" className="btn-primary w-full py-3">{isSignUp ? "Sign Up" : "Sign In"}</button>
         </form>
       </div>
 

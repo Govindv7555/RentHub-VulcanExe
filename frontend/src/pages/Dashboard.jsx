@@ -24,7 +24,10 @@ export default function Dashboard() {
      );
   }
 
-  const myGearListings = mockListings.slice(2, 4); // Mock users own gear
+  const myListings = mockListings.slice(2, 4).map((item, i) => ({
+    ...item,
+    isBooked: i === 1 // Mock second item as already booked
+  }));
   const myRentals = []; // Empty state for active rentals
 
   return (
@@ -48,7 +51,7 @@ export default function Dashboard() {
         <div className="flex space-x-8 border-b border-surfaceLight mb-8">
           {[
             { id: 'profile', label: 'Profile & Trust' },
-            { id: 'gear', label: 'My Gear' },
+            { id: 'listings', label: 'My Listings' },
             { id: 'rentals', label: 'My Rentals' }
           ].map(tab => (
             <button
@@ -143,8 +146,8 @@ export default function Dashboard() {
             </div>
           )}
 
-          {/* MY GEAR (Inventory Management) */}
-          {activeTab === 'gear' && (
+          {/* MY LISTINGS (Inventory Management) */}
+          {activeTab === 'listings' && (
             <div className="space-y-6 animate-fade-in-up">
               <div className="flex justify-between items-center mb-4">
                 <h3 className="font-bold text-white uppercase tracking-wider text-sm flex items-center">
@@ -152,23 +155,28 @@ export default function Dashboard() {
                 </h3>
               </div>
               
-              {myGearListings.length === 0 ? (
+              {myListings.length === 0 ? (
                 <div className="card py-16 text-center border-dashed">
                   <p className="text-textMuted mb-4">You have not listed any items yet.</p>
                   <Link to="/create-listing" className="btn-outline text-xs">Create First Listing</Link>
                 </div>
               ) : (
                 <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
-                  {myGearListings.map(item => (
-                    <div key={item.id} className="card p-4 flex gap-4">
+                  {myListings.map(item => (
+                    <div key={item.id} className={cn("card p-4 flex gap-4 transition-all relative overflow-hidden", item.isBooked && "grayscale opacity-60 pointer-events-none")}>
+                      {item.isBooked && (
+                        <div className="absolute top-4 right-4 z-10 bg-black/80 px-2 py-1 rounded text-[10px] uppercase font-bold text-white border border-surfaceLight">
+                          Already Booked
+                        </div>
+                      )}
                       <div className="w-24 h-24 bg-background border border-surfaceLight rounded shrink-0 overflow-hidden">
                         <img src={item.thumbnail} className="w-full h-full object-cover" />
                       </div>
                       <div className="flex-1 flex flex-col justify-between">
                         <div>
                            <div className="flex justify-between items-start">
-                             <h4 className="font-bold text-white text-sm line-clamp-1">{item.title}</h4>
-                             <span className="text-[10px] uppercase font-bold text-green-500 border border-green-500/20 bg-green-500/10 px-2 py-0.5 rounded">Active</span>
+                             <h4 className="font-bold text-white text-sm line-clamp-1 flex-1 pr-2">{item.title}</h4>
+                             {!item.isBooked && <span className="text-[10px] uppercase font-bold text-green-500 border border-green-500/20 bg-green-500/10 px-2 py-0.5 rounded">Active</span>}
                            </div>
                            <p className="text-[10px] text-textMuted flex items-center mt-1">
                              <MapPin size={10} className="mr-1" /> {item.location.address}
@@ -177,7 +185,7 @@ export default function Dashboard() {
                         <div className="flex justify-between items-end">
                            <div className="flex gap-4">
                              <div>
-                               <p className="text-[10px] text-textMuted uppercase mb-0.5">Dialy</p>
+                               <p className="text-[10px] text-textMuted uppercase mb-0.5">Daily</p>
                                <p className="text-sm font-semibold text-white">₹{(item.price_per_day_paise / 100).toLocaleString()}</p>
                              </div>
                            </div>

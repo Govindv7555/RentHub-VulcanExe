@@ -1,4 +1,4 @@
-import { useState } from 'react';
+import { useState, useRef, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { useAuth } from '../context/AuthContext';
 import { ShieldCheck, Camera, CheckCircle } from 'lucide-react';
@@ -16,9 +16,44 @@ export default function KYC() {
 
   // Camera State
   const [photoTaken, setPhotoTaken] = useState(false);
+  const [capturedImage, setCapturedImage] = useState(null);
+  const videoRef = useRef(null);
+  const canvasRef = useRef(null);
+  const [stream, setStream] = useState(null);
 
   const navigate = useNavigate();
-  const { user, login } = useAuth(); // To update kyc_verified status
+  const { user, loginUser } = useAuth(); // To update kyc_verified status
+
+  const startCamera = async () => {
+    try {
+      const mediaStream = await navigator.mediaDevices.getUserMedia({ video: true });
+      setStream(mediaStream);
+      if (videoRef.current) {
+        videoRef.current.srcObject = mediaStream;
+      }
+    } catch (err) {
+      console.error("Camera access denied:", err);
+      setError("Please allow camera access to complete face match.");
+    }
+  };
+
+  const stopCamera = () => {
+    if (stream) {
+      stream.getTracks().forEach(track => track.stop());
+      setStream(null);
+    }
+  };
+
+  // Turn on camera when entering step 2
+  useEffect(() => {
+    if (step === 2 && !photoTaken) {
+      startCamera();
+    }
+    return () => {
+      stopCamera();
+    };
+  }, [step, photoTaken]);
+
 
   const handleFormSubmit = (e) => {
     e.preventDefault();
@@ -35,12 +70,24 @@ export default function KYC() {
   };
 
   const takePhoto = () => {
-    setPhotoTaken(true);
+    if (videoRef.current && canvasRef.current) {
+      const context = canvasRef.current.getContext('2d');
+      context.drawImage(videoRef.current, 0, 0, 400, 300);
+      setCapturedImage(canvasRef.current.toDataURL('image/png'));
+      setPhotoTaken(true);
+      stopCamera();
+    }
+  };
+
+  const handleRetake = () => {
+    setCapturedImage(null);
+    setPhotoTaken(false);
+    startCamera();
   };
 
   const handleFinish = () => {
     if (user) {
-      login({ ...user, kyc_verified: true }, 'mock_jwt_token');
+      loginUser({ ...user, kyc_verified: true });
     }
     setStep(3);
     setTimeout(() => {
@@ -78,7 +125,7 @@ export default function KYC() {
               <input 
                 type="text" 
                 value={aadhaar}
-                onChange={e => setAadhaar(e.target.value)}
+                onChange={e => setAadhaar(e.target.value.replace(/\D/g, ''))} // Strictly numeric replace
                 maxLength={12}
                 className="input-field w-full" 
                 placeholder="0000 0000 0000"
@@ -134,19 +181,18 @@ export default function KYC() {
             
             <div className={cn(
               "w-full h-64 mx-auto rounded-lg overflow-hidden border-2 flex flex-col items-center justify-center relative transition-all duration-300",
-              photoTaken ? "border-amber bg-[url('https://images.unsplash.com/photo-1544005313-94ddf0286df2?w=800&auto=format&fit=crop')] bg-cover bg-center" : "border-dashed border-surfaceLight bg-surface"
+              photoTaken ? "border-amber bg-surface" : "border-dashed border-surfaceLight bg-surface"
             )}>
-              {!photoTaken && (
-                <>
-                  <div className="w-16 h-16 rounded-full border-2 border-white/20 flex items-center justify-center mb-4">
-                     <Camera size={24} className="text-white/50" />
-                  </div>
-                  <p className="text-white/50 text-sm font-semibold">Camera Access Requested</p>
-                </>
+              {!photoTaken ? (
+                <video ref={videoRef} autoPlay playsInline muted className="w-full h-full object-cover"></video>
+              ) : (
+                <img src={capturedImage} alt="Captured face" className="w-full h-full object-cover" />
               )}
               
+              <canvas ref={canvasRef} width="400" height="300" className="hidden"></canvas>
+              
               {/* Fake crosshairs */}
-              <div className="absolute inset-0 pointer-events-none">
+              <div className="absolute inset-0 pointer-events-none z-10">
                  <div className="absolute top-4 left-4 w-8 h-8 border-t-2 border-l-2 border-amber/50"></div>
                  <div className="absolute top-4 right-4 w-8 h-8 border-t-2 border-r-2 border-amber/50"></div>
                  <div className="absolute bottom-4 left-4 w-8 h-8 border-b-2 border-l-2 border-amber/50"></div>
@@ -154,13 +200,15 @@ export default function KYC() {
               </div>
             </div>
 
+            {error && <div className="text-red-500 text-xs mt-2">{error}</div>}
+
             {!photoTaken ? (
-              <button onClick={takePhoto} className="btn-primary w-full py-4 flex items-center justify-center gap-2 mt-6">
-                <div className="w-4 h-4 bg-black rounded-full shadow-[0_0_0_2px_#F5A623]"></div> Snap Photo
+              <button onClick={takePhoto} disabled={!stream} className="btn-primary w-full py-4 flex items-center justify-center gap-2 mt-6">
+                <div className="w-4 h-4 bg-black rounded-full shadow-[0_0_0_2px_#F5A623]"></div> Capture
               </button>
             ) : (
               <div className="flex gap-4 mt-6">
-                <button onClick={() => setPhotoTaken(false)} className="btn-outline flex-1 py-3 text-sm">Retry</button>
+                <button onClick={handleRetake} className="btn-outline flex-1 py-3 text-sm">Retake</button>
                 <button onClick={handleFinish} className="btn-primary flex-1 py-3 text-sm">OK, Looks Good</button>
               </div>
             )}
