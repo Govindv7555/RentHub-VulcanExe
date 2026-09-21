@@ -85,15 +85,9 @@ export default function Cart() {
   const [passwordError, setPasswordError] = useState('');
   const [isPhotoUploaded, setIsPhotoUploaded] = useState(false);
 
-  // Constants
-  const T = cartItems.length ? 245.31 : 0; // Tax
-  const deliveryFee = cartItems.length ? 321.12 : 0; // Delivery
-  const totalFees = subtotal + T + deliveryFee;
-
   // Dynamic Safety Deposit Logic
   const getTrustPercentage = () => {
     if (!user || (user.transactions_count || 0) < 5) return 0;
-    // Calculate average trust percentage dynamically based on average rating (0-5 scale mapped to 0-100)
     return (user.rating_avg / 5) * 100;
   };
 
@@ -109,6 +103,11 @@ export default function Cart() {
     const totalRevenue = (item.price_per_day_paise / 100) * duration;
     return acc + (totalRevenue * (pct / 100));
   }, 0);
+
+  // Constants
+  const T = cartItems.length ? 245.31 : 0; // Tax
+  const deliveryFee = cartItems.length ? 321.12 : 0; // Delivery
+  const totalFees = subtotal + T + deliveryFee + totalSafetyDeposit;
 
   const handleNextStep = () => {
     if (!user) {
