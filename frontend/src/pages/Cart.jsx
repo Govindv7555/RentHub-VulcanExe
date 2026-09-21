@@ -93,8 +93,8 @@ export default function Cart() {
 
   const getSafetyDepositPercentage = () => {
     const trustPercent = getTrustPercentage();
-    if (trustPercent < 80) return 10;
-    return 5;
+    if (trustPercent < 80) return 5;
+    return 10;
   };
 
   const totalSafetyDeposit = cartItems.reduce((acc, item) => {
