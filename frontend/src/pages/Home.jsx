@@ -1,13 +1,21 @@
+import { useState, useEffect } from 'react';
 import { Link, useNavigate } from 'react-router-dom';
-import { categories, mockListings } from '../data/mockData';
+import { categories, getListings } from '../data/mockData';
 import { Search, Star, Info } from 'lucide-react';
 import { useCart } from '../context/CartContext';
+import { cn } from '../lib/utils';
 
 export default function Home() {
   const { addToCart } = useCart();
   const navigate = useNavigate();
+  const [listings, setListings] = useState([]);
+
+  useEffect(() => {
+    setListings(getListings());
+  }, []);
 
   const handleAdd = (item) => {
+    if (item.isBooked) return;
     addToCart({ ...item, price: item.price_per_day_paise / 100 });
     navigate('/cart');
   };
@@ -88,9 +96,14 @@ export default function Home() {
         </div>
 
         <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
-          {mockListings.slice(0, 3).map((item) => (
-            <div key={item.id} className="card group hover:border-amber/50 transition-colors p-5 flex flex-col">
-              <div className="relative h-48 rounded bg-background overflow-hidden mb-4 border border-surfaceLight">
+          {listings.slice(0, 3).map((item) => (
+            <div key={item.id} className={cn("card group hover:border-amber/50 transition-colors p-5 flex flex-col relative", item.isBooked && "grayscale opacity-50")}>
+              {item.isBooked && (
+                 <div className="absolute top-8 right-8 z-10 bg-black/80 px-2 py-1 rounded text-[10px] uppercase font-bold text-white border border-surfaceLight pointer-events-none">
+                   Unavailable
+                 </div>
+              )}
+              <div className="relative h-48 rounded bg-background overflow-hidden mb-4 border border-surfaceLight block w-full">
                 <img src={item.thumbnail} alt={item.title} className="w-full h-full object-cover opacity-80 group-hover:opacity-100 group-hover:scale-105 transition-all duration-500" />
                 {item.withDriver && (
                   <div className="absolute top-2 right-2 bg-background/80 backdrop-blur px-3 py-1 rounded-full text-xs font-semibold text-white border border-surfaceLight flex items-center shadow-lg">
@@ -121,9 +134,10 @@ export default function Home() {
                 </div>
                 <button 
                   onClick={() => handleAdd(item)}
-                  className="btn-primary text-xs px-4 py-2 opacity-90 group-hover:opacity-100 transition-opacity"
+                  disabled={item.isBooked}
+                  className={cn("btn-primary text-xs px-4 py-2 opacity-90 transition-opacity", item.isBooked ? "bg-surface text-textMuted pointer-events-none" : "group-hover:opacity-100")}
                 >
-                  ADD TO CART
+                  {item.isBooked ? "BOOKED" : "ADD TO CART"}
                 </button>
               </div>
             </div>

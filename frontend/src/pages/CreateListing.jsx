@@ -7,13 +7,44 @@ const steps = ['Category', 'Details & Pricing', 'Location', 'Terms'];
 
 export default function CreateListing() {
   const [currentStep, setCurrentStep] = useState(0);
+  const [title, setTitle] = useState('');
+  const [description, setDescription] = useState('');
+  const [price, setPrice] = useState('45');
+  const [category, setCategory] = useState('home repair');
+  
   const navigate = useNavigate();
+  const { user } = useAuth();
 
   const handleNext = () => {
     if (currentStep < 3) {
       setCurrentStep(s => s + 1);
     } else {
-      alert("Listing successfully created and is pushed to your Gear Dashboard.");
+      if (!user) {
+        alert("You must be logged in to create a listing.");
+        navigate('/login');
+        return;
+      }
+      
+      const pricePaise = parseInt(price) * 100;
+      saveListing({
+        id: `l_custom_${Date.now()}`,
+        owner_id: user.id,
+        owner: { name: user.name, verified: user.kyc_verified },
+        title: title || 'Custom Item',
+        description: description || 'No description provided.',
+        category: category.toLowerCase().trim() || 'home repair',
+        declared_value_paise: pricePaise * 10,
+        price_per_day_paise: pricePaise,
+        price_per_week_paise: pricePaise * 5,
+        price_per_month_paise: pricePaise * 15,
+        rating: 0,
+        reviews: 0,
+        location: { address: 'Mumbai, MH', lat: 19.0760, lng: 72.8777 },
+        thumbnail: 'https://images.unsplash.com/photo-1572981779307-38b8cabb2407?w=800&auto=format&fit=crop&q=60',
+        withDriver: false,
+        isBooked: false
+      });
+      alert('Listing Activated Successfully!');
       navigate('/dashboard');
     }
   };
@@ -67,10 +98,13 @@ export default function CreateListing() {
                 <label className="text-[10px] uppercase font-bold text-textMuted mb-3 block">Category</label>
                 <div className="grid grid-cols-2 sm:grid-cols-3 gap-3">
                   {['Construction', 'Garden', 'Home Repair', 'Plumbing', 'Electrical', 'Cleaning'].map((cat, i) => (
-                    <button key={cat} className={cn(
-                      "py-3 px-4 border rounded text-sm font-semibold transition-colors text-center",
-                      i === 0 ? "border-amber bg-amber/10 text-amber" : "border-surfaceLight text-textMuted hover:text-white"
-                    )}>
+                    <button 
+                      key={cat} 
+                      onClick={() => setCategory(cat)}
+                      className={cn(
+                        "py-3 px-4 border rounded text-sm font-semibold transition-colors text-center",
+                        category.toLowerCase() === cat.toLowerCase() ? "border-amber bg-amber/10 text-amber" : "border-surfaceLight text-textMuted hover:text-white"
+                      )}>
                       {cat}
                     </button>
                   ))}
@@ -84,18 +118,18 @@ export default function CreateListing() {
             <div className="space-y-6 animate-fade-in-up">
               <div>
                 <label className="text-[10px] uppercase font-bold text-textMuted mb-2 block">Listing Title</label>
-                <input type="text" className="input-field w-full" placeholder="e.g. Bosch Professional Rotary Hammer Drill" />
+                <input type="text" value={title} onChange={e => setTitle(e.target.value)} className="input-field w-full" placeholder="e.g. Bosch Professional Rotary Hammer Drill" />
               </div>
 
               <div>
                 <label className="text-[10px] uppercase font-bold text-textMuted mb-2 block">Item Description</label>
-                <textarea rows={4} className="input-field w-full resize-none" placeholder="Provide full details, condition, and included accessories..."></textarea>
+                <textarea rows={4} value={description} onChange={e => setDescription(e.target.value)} className="input-field w-full resize-none" placeholder="Provide full details, condition, and included accessories..."></textarea>
               </div>
 
               <div className="grid grid-cols-1 sm:grid-cols-2 gap-6 pt-6 border-t border-surfaceLight">
                 <div>
                   <label className="text-[10px] uppercase font-bold text-textMuted mb-2 block">Daily Rate (₹)</label>
-                  <input type="number" className="input-field w-full" placeholder="0.00" defaultValue="45" />
+                  <input type="number" value={price} onChange={e => setPrice(e.target.value)} className="input-field w-full" placeholder="0.00" />
                 </div>
                 <div>
                   <label className="text-[10px] uppercase font-bold text-textMuted mb-2 block">Hourly Rate (₹) - Optional</label>

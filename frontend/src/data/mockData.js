@@ -89,3 +89,29 @@ export const categories = [
   { id: '5', name: 'Electrical', icon: '⚡', count: 680 },
   { id: '6', name: 'Cleaning', icon: '🧼', count: 930 },
 ];
+
+export const getListings = () => {
+  const data = localStorage.getItem('renthub_listings_db');
+  if (!data) {
+    // Add `isBooked` flag to a couple items to demonstrate the "Unavailable" feature globally
+    const seededListings = mockListings.map((l, i) => ({
+      ...l,
+      isBooked: i === 1 // Make the DeWalt Power Drill booked dynamically
+    }));
+    localStorage.setItem('renthub_listings_db', JSON.stringify(seededListings));
+    return seededListings;
+  }
+  return JSON.parse(data);
+};
+
+export const saveListing = (listing) => {
+  const data = getListings();
+  data.push(listing);
+  localStorage.setItem('renthub_listings_db', JSON.stringify(data));
+};
+
+export const removeListing = (id) => {
+  const data = getListings();
+  const filtered = data.filter(l => l.id !== id);
+  localStorage.setItem('renthub_listings_db', JSON.stringify(filtered));
+};

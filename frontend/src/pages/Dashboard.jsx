@@ -3,7 +3,7 @@ import { useAuth } from '../context/AuthContext';
 import { Link } from 'react-router-dom';
 import { ShieldCheck, Plus, Package, MessageCircle, MapPin } from 'lucide-react';
 import { cn } from '../lib/utils';
-import { mockListings } from '../data/mockData';
+import { getListings, removeListing } from '../data/mockData';
 
 export default function Dashboard() {
   const { user } = useAuth();
@@ -24,10 +24,22 @@ export default function Dashboard() {
      );
   }
 
-  const myListings = mockListings.slice(2, 4).map((item, i) => ({
-    ...item,
-    isBooked: i === 1 // Mock second item as already booked
-  }));
+  const [myListings, setMyListings] = useState([]);
+
+  useEffect(() => {
+    if (user) {
+      // Pull dynamic mock DB listings owned by this user
+      setMyListings(getListings().filter(item => item.owner_id === user.id));
+    }
+  }, [user]);
+
+  const handleDelete = (id) => {
+    if(window.confirm("Are you sure you want to delete this listing?")) {
+      removeListing(id);
+      setMyListings(getListings().filter(item => item.owner_id === user.id));
+    }
+  };
+
   const myRentals = []; // Empty state for active rentals
 
   return (
@@ -189,7 +201,7 @@ export default function Dashboard() {
                                <p className="text-sm font-semibold text-white">₹{(item.price_per_day_paise / 100).toLocaleString()}</p>
                              </div>
                            </div>
-                           <button className="text-[10px] uppercase tracking-wider font-semibold text-amber hover:text-white transition-colors">Edit</button>
+                           <button onClick={() => handleDelete(item.id)} className="text-[10px] uppercase tracking-wider font-semibold text-red-500 hover:text-white transition-colors">Delete</button>
                         </div>
                       </div>
                     </div>

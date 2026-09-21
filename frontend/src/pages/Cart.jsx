@@ -39,22 +39,46 @@ export default function Cart() {
     }
   }, [currentStep, cartItems, user]);
 
+  const systemDate = new Date(); // Sept 21 2026 based on meta constraints
+  systemDate.setHours(0,0,0,0);
+  
+  const currentMonthName = systemDate.toLocaleString('default', { month: 'long', year: 'numeric' });
+  const daysInMonth = new Date(systemDate.getFullYear(), systemDate.getMonth() + 1, 0).getDate();
+  const firstDayOfMonth = new Date(systemDate.getFullYear(), systemDate.getMonth(), 1).getDay();
+  const startEmptySlots = firstDayOfMonth === 0 ? 6 : firstDayOfMonth - 1;
+
+  const prevDaysArr = Array.from({length: startEmptySlots}).map((_, i) => new Date(systemDate.getFullYear(), systemDate.getMonth(), 0).getDate() - startEmptySlots + i + 1);
+  const currentDaysArr = Array.from({length: daysInMonth}).map((_, i) => i + 1);
+  
+  const totalCells = startEmptySlots + daysInMonth;
+  const nextDaysArr = Array.from({length: Math.ceil(totalCells / 7) * 7 - totalCells}).map((_, i) => i + 1);
+
   const [dateRange, setDateRange] = useState({ 
-    start: '2 Aug 2026', 
-    end: '3 Aug 2026',
+    start: systemDate, 
+    end: new Date(systemDate.getFullYear(), systemDate.getMonth(), systemDate.getDate() + 2),
     startTime: 'Afternoon (2-5 PM)',
-    endTime: 'Midday (10-2 PM)',
-    selectedDay: 2
+    endTime: 'Midday (10-2 PM)'
   });
 
   const handleDateClick = (day) => {
-    setDateRange({
-       ...dateRange,
-       start: `${day} Aug 2026`,
-       end: `${day + 1} Aug 2026`,
-       selectedDay: day
-    });
+    const selectedDate = new Date(systemDate.getFullYear(), systemDate.getMonth(), day);
+    if(selectedDate < systemDate) return; 
+    
+    if (!dateRange.start || (dateRange.start && dateRange.end)) {
+       setDateRange({ ...dateRange, start: selectedDate, end: null });
+    } else if (selectedDate <= dateRange.start) {
+       setDateRange({ ...dateRange, start: selectedDate, end: null });
+    } else {
+       setDateRange({ ...dateRange, end: selectedDate });
+    }
   };
+
+  const calculateDuration = () => {
+    if(!dateRange.start || !dateRange.end) return 1;
+    const mapDiff = Math.abs(dateRange.end - dateRange.start);
+    return Math.ceil(mapDiff / (1000 * 60 * 60 * 24)) + 1;
+  };
+
   const [deliveryLocation, setDeliveryLocation] = useState('New Delhi, DL');
   const [paymentMethod, setPaymentMethod] = useState('card');
   const [password, setPassword] = useState('');
@@ -179,7 +203,7 @@ export default function Cart() {
                     <div className="flex-1 border-r-0 md:border-r border-surfaceLight md:pr-8">
                        <div className="flex justify-between items-center mb-4">
                          <button className="text-textMuted hover:text-white"><ArrowLeft size={16}/></button>
-                         <span className="font-semibold text-white text-sm">August 2026</span>
+                         <span className="font-semibold text-white text-sm">{currentMonthName}</span>
                          <button className="text-textMuted hover:text-white"><ArrowRight size={16}/></button>
                        </div>
                        
@@ -188,33 +212,47 @@ export default function Cart() {
                        </div>
                        
                        <div className="grid grid-cols-7 gap-1 text-center text-sm text-white">
-                          {[27,28,29,30,31,1].map(d => <div key={'prev'+d} className="p-2 text-white/20">{d}</div>)}
-                          {[2,3,4,5,6,7,8,9,10,11,12].map(d => (
-                            <div 
-                              key={d} 
-                              onClick={() => handleDateClick(d)}
-                              className={cn(
-                                "p-2 rounded cursor-pointer transition-colors font-bold",
-                                dateRange.selectedDay === d ? "bg-amber text-black" : 
-                                dateRange.selectedDay + 1 === d ? "bg-amber/50 text-white border border-amber" : 
-                                "hover:bg-white/10 font-normal"
-                              )}
-                            >
-                              {d}
-                            </div>
-                          ))}
+                          {prevDaysArr.map(d => <div key={'prev'+d} className="p-2 text-white/20">{d}</div>)}
+                          {currentDaysArr.map(d => {
+                            const thisDate = new Date(systemDate.getFullYear(), systemDate.getMonth(), d);
+                            const isPast = thisDate < systemDate;
+                            
+                            const isStart = dateRange.start && thisDate.getTime() === dateRange.start.getTime();
+                            const isEnd = dateRange.end && thisDate.getTime() === dateRange.end.getTime();
+                            const isBetween = dateRange.start && dateRange.end && thisDate > dateRange.start && thisDate < dateRange.end;
+                            const isEdge = isStart && isEnd;
+                            
+                            return (
+                              <div 
+                                key={d} 
+                                onClick={() => !isPast && handleDateClick(d)}
+                                className={cn(
+                                  "p-2 rounded cursor-pointer transition-colors font-bold relative",
+                                  isPast && "text-white/20 hover:bg-transparent font-normal cursor-not-allowed",
+                                  !isPast && !isStart && !isEnd && !isBetween && "hover:bg-white/10 font-normal",
+                                  isStart && !isEdge && "bg-amber text-black rounded-r-none",
+                                  isEnd && !isEdge && "bg-amber text-black rounded-l-none border-l border-black/10",
+                                  isEdge && "bg-amber text-black",
+                                  isBetween && "bg-amber/20 text-white rounded-none font-normal"
+                                )}
+                              >
+                                {d}
+                              </div>
+                            );
+                          })}
+                          {nextDaysArr.map(d => <div key={'next'+d} className="p-2 text-white/20">{d}</div>)}
                        </div>
-                       <p className="mt-6 text-sm font-bold text-white tracking-tight border-t border-surfaceLight pt-4">Duration: 2 Days</p>
+                       <p className="mt-6 text-sm font-bold text-white tracking-tight border-t border-surfaceLight pt-4">Duration: {calculateDuration()} Days</p>
                     </div>
 
                     <div className="flex-1 space-y-6">
                        <div>
                          <label className="text-[10px] text-textMuted uppercase font-bold mb-2 block">Rental Start</label>
-                         <input type="text" value={dateRange.start} readOnly className="input-field w-full text-white font-medium bg-surface text-sm" />
+                         <input type="text" value={dateRange.start ? dateRange.start.toLocaleDateString('default', { day: 'numeric', month: 'short', year: 'numeric'}) : '--'} readOnly className="input-field w-full text-white font-medium bg-surface text-sm" />
                        </div>
                        <div>
                          <label className="text-[10px] text-textMuted uppercase font-bold mb-2 block">Rental End</label>
-                         <input type="text" value={dateRange.end} readOnly className="input-field w-full text-white font-medium bg-surface text-sm" />
+                         <input type="text" value={dateRange.end ? dateRange.end.toLocaleDateString('default', { day: 'numeric', month: 'short', year: 'numeric'}) : '--'} readOnly className="input-field w-full text-white font-medium bg-surface text-sm" />
                        </div>
                     </div>
                   </div>

@@ -1,6 +1,6 @@
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import { useSearchParams, Link } from 'react-router-dom';
-import { mockListings, categories } from '../data/mockData';
+import { getListings, categories } from '../data/mockData';
 import { Search, Star, SlidersHorizontal, Info, ChevronDown } from 'lucide-react';
 import { useCart } from '../context/CartContext';
 import { cn } from '../lib/utils';
@@ -11,16 +11,23 @@ export default function Catalog() {
   const [activeCategory, setActiveCategory] = useState(initialCategory);
   const [search, setSearch] = useState('');
   
+  const [listings, setListings] = useState([]);
+
+  useEffect(() => {
+     setListings(getListings());
+  }, []);
+
   const { addToCart } = useCart();
   
   // Filtering
-  const filteredListings = mockListings.filter(item => {
+  const filteredListings = listings.filter(item => {
     const matchCat = activeCategory === 'All' || item.category === activeCategory.toLowerCase();
     const matchSearch = item.title.toLowerCase().includes(search.toLowerCase());
     return matchCat && matchSearch;
   });
 
   const handleAdd = (item) => {
+    if (item.isBooked) return;
     addToCart({ ...item, price: item.price_per_day_paise / 100 });
   };
 
@@ -168,7 +175,12 @@ export default function Catalog() {
               </div>
             ) : (
               filteredListings.map(listing => (
-                <div key={listing.id} className="card p-0 overflow-hidden flex flex-col sm:flex-row group transition-colors hover:border-amber/30">
+                <div key={listing.id} className={cn("card p-0 overflow-hidden flex flex-col sm:flex-row group transition-colors relative", listing.isBooked ? "grayscale opacity-50" : "hover:border-amber/30")}>
+                  {listing.isBooked && (
+                     <div className="absolute top-4 right-4 z-10 bg-black/80 px-2 py-1 rounded text-[10px] uppercase font-bold text-white border border-surfaceLight pointer-events-none">
+                       Unavailable
+                     </div>
+                  )}
                   {/* Left: Image */}
                   <div className="sm:w-64 h-48 sm:h-auto bg-background relative border-r border-surfaceLight shrink-0">
                     <img src={listing.thumbnail} alt={listing.title} className="w-full h-full object-cover opacity-80 group-hover:opacity-100 transition-opacity" />
@@ -183,7 +195,7 @@ export default function Catalog() {
                   <div className="p-5 sm:p-6 flex-1 flex flex-col justify-between">
                     <div className="mb-4">
                       <div className="flex justify-between items-start gap-4 mb-2">
-                        <Link to={`/listing/${listing.id}`} className="font-semibold text-lg text-white leading-tight hover:text-amber transition-colors">
+                        <Link to={!listing.isBooked ? `/listing/${listing.id}` : '#'} className="font-semibold text-lg text-white leading-tight hover:text-amber transition-colors">
                           {listing.title}
                         </Link>
                         <div className="flex items-center text-xs shrink-0">
@@ -219,9 +231,10 @@ export default function Catalog() {
                       
                       <button 
                         onClick={() => handleAdd(listing)}
-                        className="btn-primary py-2 px-8 w-full sm:w-auto uppercase tracking-wider text-xs"
+                        disabled={listing.isBooked}
+                        className={cn("py-2 px-8 w-full sm:w-auto uppercase tracking-wider text-xs", listing.isBooked ? "bg-surface text-textMuted border border-surfaceLight cursor-not-allowed" : "btn-primary")}
                       >
-                        Add to Cart
+                        {listing.isBooked ? "BOOKED" : "ADD TO CART"}
                       </button>
                     </div>
                   </div>
