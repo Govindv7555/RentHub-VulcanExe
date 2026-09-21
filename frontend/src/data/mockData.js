@@ -4,46 +4,46 @@ export const mockListings = [
     title: 'Cushion Tire Forklift, 4000 lbs',
     category: 'construction',
     description: 'Perfect for warehouse operations. Comes with a driver.',
-    declared_value_paise: 150000000,
-    price_per_day_paise: 52400, // $524 in UI
-    price_per_week_paise: 354600,
-    price_per_month_paise: 1320400,
+    declared_value_paise: 2500000, // ₹25,000 (Tier 3: > 15k RS)
+    price_per_day_paise: 250000, // ₹2,500/day
+    price_per_week_paise: 1500000,
+    price_per_month_paise: 5000000,
     rating: 4.8,
     reviews: 12,
-    location: { address: 'Houston, TX', lat: 29.7604, lng: -95.3698 },
+    location: { address: 'Mumbai, MH', lat: 19.0760, lng: 72.8777 },
     thumbnail: 'https://images.unsplash.com/photo-1541625602330-2277a4c4618c?w=800&auto=format&fit=crop&q=60',
     owner: { name: 'ZOZR', verified: true },
     withDriver: true
   },
   {
     id: 'l_02',
-    title: 'Bobcat Skid-Steer Loader',
-    category: 'construction',
-    description: 'Versatile loader for earthmoving and landscaping tasks.',
-    declared_value_paise: 80000000,
-    price_per_day_paise: 38000, 
-    price_per_week_paise: 240000,
-    price_per_month_paise: 850000,
+    title: 'DeWalt Power Drill',
+    category: 'tools',
+    description: 'Cordless 20V drill, excellent for minor fixes.',
+    declared_value_paise: 80000, // ₹800 (Tier 1: < 1000 RS)
+    price_per_day_paise: 15000, // ₹150/day 
+    price_per_week_paise: 80000,
+    price_per_month_paise: 250000,
     rating: 4.5,
     reviews: 8,
-    location: { address: 'Houston, TX', lat: 29.7604, lng: -95.3698 },
-    thumbnail: 'https://images.unsplash.com/photo-1579975765660-441369b27b3b?w=800&auto=format&fit=crop&q=60',
+    location: { address: 'New Delhi, DL', lat: 28.6139, lng: 77.2090 },
+    thumbnail: 'https://images.unsplash.com/photo-1504307651254-35680f356dfd?w=800&auto=format&fit=crop&q=60',
     owner: { name: 'RentHub Direct', verified: true },
     withDriver: false
   },
   {
     id: 'l_03',
-    title: 'Honda 21" Self-Propelled Lawn Mower',
+    title: 'Bosch High-Pressure Washer',
     category: 'garden',
-    description: 'Gas powered, dual-blade system for excellent mulching. Easy start.',
-    declared_value_paise: 5000000,
-    price_per_day_paise: 4500, 
-    price_per_week_paise: 18000,
-    price_per_month_paise: 45000,
+    description: 'Electric washer for patios, cars and walkways.',
+    declared_value_paise: 900000, // ₹9,000 (Tier 2: 2k-15k RS)
+    price_per_day_paise: 40000, // ₹400
+    price_per_week_paise: 200000,
+    price_per_month_paise: 600000,
     rating: 4.9,
     reviews: 24,
-    location: { address: 'Austin, TX', lat: 30.2672, lng: -97.7431 },
-    thumbnail: 'https://images.unsplash.com/photo-1592424006240-62f7d3dd1436?w=800&auto=format&fit=crop&q=60',
+    location: { address: 'Bangalore, KA', lat: 12.9716, lng: 77.5946 },
+    thumbnail: 'https://images.unsplash.com/photo-1621644026362-e1d52dbe2c4a?w=800&auto=format&fit=crop&q=60',
     owner: { name: 'GreenScapes', verified: true },
     withDriver: false
   },

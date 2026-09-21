@@ -16,9 +16,12 @@ export function AuthProvider({ children }) {
       // For now, mock a user
       setUser({
         id: 'user_123',
-        name: 'John Doe',
+        name: 'Avinash R.',
         phone: '+919876543210',
         kyc_verified: true,
+        purchases_count: 6,
+        reputation_score: 75,
+        password: 'password123'
       });
     }
     setLoading(false);
@@ -35,8 +38,12 @@ export function AuthProvider({ children }) {
     navigate('/');
   };
 
+  const validatePassword = (pwd) => {
+    return user && user.password === pwd;
+  };
+
   return (
-    <AuthContext.Provider value={{ user, loading, login, logout }}>
+    <AuthContext.Provider value={{ user, loading, login, logout, validatePassword }}>
       {children}
     </AuthContext.Provider>
   );

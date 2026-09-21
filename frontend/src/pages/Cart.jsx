@@ -1,36 +1,97 @@
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import { useCart } from '../context/CartContext';
-import { Calendar, Clock, ArrowRight, ArrowLeft, Trash2, CheckCircle } from 'lucide-react';
+import { useAuth } from '../context/AuthContext';
+import { Calendar, Clock, ArrowRight, ArrowLeft, Trash2, CheckCircle, MapPin, Camera, AlertTriangle, ShieldCheck } from 'lucide-react';
 import { cn } from '../lib/utils';
-import { Link } from 'react-router-dom';
+import { Link, useNavigate } from 'react-router-dom';
 
 const steps = [
-  'Items', 'Rental Dates', 'Attachments', 'Delivery', 'Contact', 'Billing'
+  'Items & Delivery', 'Safety Deposit', 'Item Validation', 'Final Payment'
 ];
 
 export default function Cart() {
   const { cartItems, removeFromCart, clearCart, subtotal } = useCart();
-  const [currentStep, setCurrentStep] = useState(1); // 0-indexed, starts at 1 for "Rental Dates" based on reference UI
+  const { user, validatePassword } = useAuth();
+  const navigate = useNavigate();
   
-  const T = 245.31;
-  const taxes = cartItems.length ? T : 0;
-  const delivery = cartItems.length ? 321.12 : 0;
-  const total = subtotal + taxes + delivery;
+  // State Persistence
+  const [currentStep, setCurrentStep] = useState(() => {
+    const saved = localStorage.getItem('cart_step');
+    return saved ? parseInt(saved, 10) : 0;
+  });
+
+  useEffect(() => {
+    localStorage.setItem('cart_step', currentStep);
+    if(cartItems.length === 0 && currentStep === 0) {
+       localStorage.removeItem('cart_step');
+    }
+  }, [currentStep, cartItems]);
 
   const [dateRange, setDateRange] = useState({ 
-    start: 'Aug 2, 2026', 
-    end: 'Aug 3, 2026',
+    start: '2 Aug 2026', 
+    end: '3 Aug 2026',
     startTime: 'Afternoon (2-5 PM)',
     endTime: 'Midday (10-2 PM)'
   });
-  
-  const handleCheckout = () => {
-     if (currentStep < 5) {
-        setCurrentStep(v => v + 1);
-     } else {
-        alert("Proceeding to Mock Checkout / DigiLocker KYC flow");
-        clearCart();
-     }
+  const [deliveryLocation, setDeliveryLocation] = useState('New Delhi, DL');
+  const [paymentMethod, setPaymentMethod] = useState('card');
+  const [password, setPassword] = useState('');
+  const [passwordError, setPasswordError] = useState('');
+  const [isPhotoUploaded, setIsPhotoUploaded] = useState(false);
+
+  // Constants
+  const T = cartItems.length ? 245.31 : 0; // Tax
+  const deliveryFee = cartItems.length ? 321.12 : 0; // Delivery
+  const totalFees = subtotal + T + deliveryFee;
+
+  // Dynamic Safety Deposit Logic
+  const getSafetyDepositPercentage = (valueInPaise) => {
+    const valueRS = valueInPaise / 100;
+    let minPct, maxPct;
+    
+    if (valueRS < 1000) {
+      minPct = 50; maxPct = 50;
+    } else if (valueRS >= 2000 && valueRS <= 15000) {
+      minPct = 15; maxPct = 20;
+    } else { // > 15000
+      minPct = 5; maxPct = 10;
+    }
+
+    if (!user || (user.purchases_count || 0) <= 5) {
+      return maxPct;
+    }
+    
+    const rep = user.reputation_score || 0; 
+    // Slide from maxPct (rep=0) to minPct (rep=100)
+    return maxPct - ((rep / 100) * (maxPct - minPct));
+  };
+
+  const totalSafetyDeposit = cartItems.reduce((acc, item) => {
+    const pct = getSafetyDepositPercentage(item.declared_value_paise);
+    return acc + ((item.declared_value_paise / 100) * (pct / 100));
+  }, 0);
+
+  const handleNextStep = () => {
+    setCurrentStep(s => s + 1);
+    window.scrollTo(0,0);
+  };
+
+  const handlePayment = () => {
+    if (!validatePassword(password)) {
+      setPasswordError('Incorrect password. Please try again.');
+      return;
+    }
+    setPasswordError('');
+    setPassword('');
+    alert("Payment successful!");
+    handleNextStep();
+  };
+
+  const handleReturnDamaged = () => {
+    alert("Return initiated. Safety Deposit of ₹" + totalSafetyDeposit.toFixed(2) + " is refunded instantly.");
+    clearCart();
+    localStorage.removeItem('cart_step');
+    navigate('/');
   };
 
   return (
@@ -38,7 +99,7 @@ export default function Cart() {
       <div className="max-w-7xl mx-auto px-4 md:px-8">
         
         {/* Step Indicator */}
-        <div className="flex flex-wrap items-center justify-between md:justify-start md:space-x-8 mb-12 overflow-x-auto pb-4 border-b border-surfaceLight">
+        <div className="flex flex-wrap items-center justify-between md:justify-start md:space-x-12 mb-12 overflow-x-auto pb-4 border-b border-surfaceLight">
           {steps.map((label, idx) => (
             <div key={idx} className={cn(
               "flex items-center space-x-2 shrink-0 mb-2 md:mb-0",
@@ -46,7 +107,7 @@ export default function Cart() {
               currentStep > idx ? "text-white/70" : "text-white/30"
             )}>
               <div className={cn(
-                "w-6 h-6 rounded-full flex items-center justify-center text-xs font-bold",
+                "w-6 h-6 rounded-full flex items-center justify-center text-xs font-bold transition-colors",
                 currentStep === idx ? "bg-amber text-black" : 
                 currentStep > idx ? "bg-white/20 text-white" : "bg-white/10 text-white/50"
               )}>
@@ -57,7 +118,7 @@ export default function Cart() {
           ))}
         </div>
 
-        {cartItems.length === 0 && currentStep === 1 ? (
+        {cartItems.length === 0 && currentStep === 0 ? (
           <div className="text-center py-20">
             <h2 className="text-2xl font-bold text-white mb-4">Your cart is empty</h2>
             <p className="text-textMuted mb-8">Add some equipment from the catalog to get started.</p>
@@ -66,149 +127,239 @@ export default function Cart() {
         ) : (
           <div className="flex flex-col lg:flex-row gap-12">
             
-            {/* Left Column: Wizard Steps */}
+            {/* Left Column: Flow */}
             <div className="flex-1">
               
-              {currentStep === 1 && (
+              {/* STEP 1: Items & Delivery Config */}
+              {currentStep === 0 && (
                 <div className="animate-fade-in-up">
-                  <h2 className="text-2xl font-bold text-white mb-6">Select Rental Dates</h2>
+                  <h2 className="text-2xl font-bold text-white mb-6">Delivery Details</h2>
                   
+                  <div className="bg-background p-6 rounded-lg border border-surfaceLight mb-6">
+                    <label className="text-[10px] text-textMuted uppercase font-bold mb-3 block">Preferred Delivery Location</label>
+                    <div className="relative">
+                      <input 
+                         type="text" 
+                         value={deliveryLocation}
+                         onChange={(e) => setDeliveryLocation(e.target.value)}
+                         className="input-field w-full pl-10" 
+                         placeholder="Enter location e.g. New Delhi, DL" 
+                      />
+                      <MapPin size={16} className="absolute left-3 top-1/2 -translate-y-1/2 text-textMuted" />
+                    </div>
+                  </div>
+
                   <div className="flex flex-col md:flex-row gap-8 bg-background p-6 rounded-lg border border-surfaceLight">
-                    
-                    {/* Mock Calendar */}
+                    {/* Interactive Calendar Mock */}
                     <div className="flex-1 border-r-0 md:border-r border-surfaceLight md:pr-8">
                        <div className="flex justify-between items-center mb-4">
                          <button className="text-textMuted hover:text-white"><ArrowLeft size={16}/></button>
-                         <span className="font-semibold text-white">August 2026</span>
-                         <span className="font-semibold text-white">September 2026</span>
+                         <span className="font-semibold text-white text-sm">August 2026</span>
                          <button className="text-textMuted hover:text-white"><ArrowRight size={16}/></button>
                        </div>
                        
                        <div className="grid grid-cols-7 gap-y-4 gap-x-1 text-center text-[10px] mb-2 text-textMuted uppercase font-semibold">
-                         <span>Mon</span><span>Tue</span><span>Wed</span><span>Thu</span><span>Fri</span><span>Sat</span><span>Sun</span>
+                         <span>Mo</span><span>Tu</span><span>We</span><span>Th</span><span>Fr</span><span>Sa</span><span>Su</span>
                        </div>
                        
                        <div className="grid grid-cols-7 gap-1 text-center text-sm text-white">
-                          {[28,29,30,31,1].map(d => <div key={'prev'+d} className="p-2 text-white/20">{d}</div>)}
-                          <div className="p-2 bg-amber text-black font-bold rounded-l-md">2</div>
-                          <div className="p-2 bg-amber/50 text-white font-bold rounded-r-md border border-amber">3</div>
-                          {[4,5,6,7,8,9,10,11,12].map(d => <div key={d} className="p-2 hover:bg-white/10 rounded cursor-pointer transition-colors">{d}</div>)}
+                          {[27,28,29,30,31,1].map(d => <div key={'prev'+d} className="p-2 text-white/20">{d}</div>)}
+                          <div className="p-2 bg-amber text-black font-bold rounded-l-md cursor-pointer hover:bg-amber/80 transition-colors">2</div>
+                          <div className="p-2 bg-amber/50 text-white font-bold rounded-r-md border border-amber cursor-pointer hover:bg-amber/60 transition-colors">3</div>
+                          {[4,5,6,7,8,9,10,11,12].map(d => <div key={d} className="p-2 hover:bg-white/10 rounded cursor-pointer transition-colors" onClick={() => alert('Calendar interaction mocked')}>{d}</div>)}
                        </div>
-                       <p className="mt-8 text-xl font-bold text-white tracking-tight">2 Days</p>
+                       <p className="mt-6 text-sm font-bold text-white tracking-tight border-t border-surfaceLight pt-4">Duration: 2 Days</p>
                     </div>
 
-                    {/* Time selection */}
                     <div className="flex-1 space-y-6">
                        <div>
                          <label className="text-[10px] text-textMuted uppercase font-bold mb-2 block">Rental Start</label>
-                         <div className="flex gap-2">
-                           <input type="text" value={dateRange.start} readOnly className="input-field w-full text-white font-medium bg-surface" />
-                         </div>
+                         <input type="text" value={dateRange.start} readOnly className="input-field w-full text-white font-medium bg-surface text-sm" />
                        </div>
                        <div>
                          <label className="text-[10px] text-textMuted uppercase font-bold mb-2 block">Rental End</label>
-                         <div className="flex gap-2">
-                           <input type="text" value={dateRange.end} readOnly className="input-field w-full text-white font-medium bg-surface" />
-                         </div>
+                         <input type="text" value={dateRange.end} readOnly className="input-field w-full text-white font-medium bg-surface text-sm" />
                        </div>
-                       
-                       <div className="grid gap-4 mt-4">
-                         <div>
-                           <label className="text-[10px] text-textMuted uppercase font-bold mb-2 block">Time Start</label>
-                           <select className="input-field w-full text-sm">
-                             <option>{dateRange.startTime}</option>
-                           </select>
-                         </div>
-                         <div>
-                           <label className="text-[10px] text-textMuted uppercase font-bold mb-2 block">Time End</label>
-                           <select className="input-field w-full text-sm">
-                             <option>{dateRange.endTime}</option>
-                           </select>
-                         </div>
+                    </div>
+                  </div>
+
+                  <div className="flex justify-end mt-8">
+                     <button onClick={handleNextStep} className="btn-primary px-12">CONTINUE</button>
+                  </div>
+                </div>
+              )}
+
+              {/* STEP 2: Safety Deposit Payment */}
+              {currentStep === 1 && (
+                <div className="animate-fade-in-up space-y-6">
+                  <h2 className="text-2xl font-bold text-white mb-2">Safety Deposit Phase</h2>
+                  <div className="bg-amber/10 border border-amber/30 p-4 rounded text-sm text-white/80">
+                     <p className="mb-2"><strong>Smart Deposit Calculation:</strong> Because you have {user?.purchases_count || 0} past purchases and a Reputation Score of {user?.reputation_score || 0}, your safety deposit is dynamically reduced!</p>
+                  </div>
+
+                  <div className="bg-background p-6 rounded-lg border border-surfaceLight">
+                     <div className="flex justify-between items-end mb-6 border-b border-surfaceLight pb-6">
+                       <div>
+                         <h3 className="font-bold text-white mb-1">Deposit Due Now</h3>
+                         <p className="text-xs text-textMuted">Fully refundable upon safe return</p>
                        </div>
+                       <span className="text-3xl font-bold text-white">₹{totalSafetyDeposit.toFixed(2)}</span>
+                     </div>
+
+                     <div className="space-y-4 mb-8">
+                       <label className="text-[10px] text-textMuted uppercase font-bold mb-2 block">Payment Method</label>
+                       <div className="flex gap-4">
+                         <button onClick={() => setPaymentMethod('card')} className={cn("flex-1 py-3 border rounded text-xs font-bold uppercase tracking-wider transition-colors", paymentMethod === 'card' ? "border-amber bg-amber/10 text-amber" : "border-surfaceLight text-textMuted hover:text-white")}>Card</button>
+                         <button onClick={() => setPaymentMethod('upi')} className={cn("flex-1 py-3 border rounded text-xs font-bold uppercase tracking-wider transition-colors", paymentMethod === 'upi' ? "border-amber bg-amber/10 text-amber" : "border-surfaceLight text-textMuted hover:text-white")}>UPI</button>
+                         <button onClick={() => setPaymentMethod('net')} className={cn("flex-1 py-3 border rounded text-xs font-bold uppercase tracking-wider transition-colors", paymentMethod === 'net' ? "border-amber bg-amber/10 text-amber" : "border-surfaceLight text-textMuted hover:text-white")}>Net Banking</button>
+                       </div>
+                     </div>
+
+                     <div className="pt-6 border-t border-surfaceLight">
+                       <label className="text-[10px] text-textMuted uppercase font-bold mb-2 block">Security Verification</label>
+                       <p className="text-xs text-textMuted mb-3">Re-enter your RentHub password to authorize the temporary deposit hold.</p>
+                       <input 
+                          type="password" 
+                          value={password} 
+                          onChange={e => setPassword(e.target.value)} 
+                          placeholder="Password" 
+                          className="input-field w-full mb-2" 
+                       />
+                       {passwordError && <p className="text-xs text-red-500 mb-4">{passwordError}</p>}
+                       <button onClick={handlePayment} className="btn-primary w-full py-3 mt-4" disabled={!password}>Authorize ₹{totalSafetyDeposit.toFixed(2)} Hold</button>
+                     </div>
+                  </div>
+                </div>
+              )}
+
+              {/* STEP 3: Item Validation (Delivery) */}
+              {currentStep === 2 && (
+                <div className="animate-fade-in-up space-y-6">
+                  <h2 className="text-2xl font-bold text-white mb-2">Item Delivered</h2>
+                  <p className="text-textMuted text-sm mb-6">Inspect the item and upload a validation photo for the owner.</p>
+
+                  <div className="bg-background p-6 rounded-lg border border-surfaceLight text-center">
+                    {!isPhotoUploaded ? (
+                      <div className="border-2 border-dashed border-surfaceLight hover:border-amber/50 transition-colors rounded-lg bg-surface/50 h-48 flex flex-col items-center justify-center cursor-pointer mb-6" onClick={() => setIsPhotoUploaded(true)}>
+                        <div className="w-12 h-12 bg-surface rounded-full flex items-center justify-center mb-3">
+                          <Camera size={20} className="text-textMuted" />
+                        </div>
+                        <p className="font-semibold text-white text-sm">Click to upload arrival photo</p>
+                      </div>
+                    ) : (
+                      <div className="border border-green-500/30 bg-green-500/10 rounded-lg p-6 mb-6 flex flex-col items-center">
+                        <CheckCircle size={32} className="text-green-500 mb-2" />
+                        <p className="text-white font-bold">Photo verified</p>
+                      </div>
+                    )}
+
+                    <div className={cn("grid grid-cols-2 gap-4 transition-opacity duration-500", isPhotoUploaded ? 'opacity-100' : 'opacity-30 pointer-events-none')}>
+                       <button onClick={handleNextStep} className="btn-primary py-3 rounded text-xs gap-2 flex items-center justify-center">
+                         <ShieldCheck size={16} /> Item is in Good Condition
+                       </button>
+                       <button onClick={handleReturnDamaged} className="bg-red-500/10 text-red-500 border border-red-500/30 font-bold uppercase tracking-wider py-3 rounded text-xs hover:bg-red-500 hover:text-white transition-colors flex items-center justify-center gap-2">
+                         <AlertTriangle size={16} /> Item Damaged, Return Now
+                       </button>
                     </div>
                   </div>
                 </div>
               )}
 
-              {currentStep > 1 && (
-                <div className="animate-fade-in-up text-center py-20 bg-background rounded-lg border border-surfaceLight">
-                  <h2 className="text-2xl font-bold text-white mb-4">Step {currentStep + 1}: {steps[currentStep]}</h2>
-                  <p className="text-textMuted mb-8">This section is mocked for the demo. Proceed to checkout.</p>
+              {/* STEP 4: Final Payment */}
+              {currentStep === 3 && (
+                <div className="animate-fade-in-up space-y-6 text-center">
+                   <div className="pt-10 pb-6 flex flex-col items-center">
+                      <div className="w-20 h-20 bg-green-500/20 text-green-500 rounded-full flex items-center justify-center mb-6">
+                         <CheckCircle size={40} />
+                      </div>
+                      <h2 className="text-3xl font-bold text-white mb-2">Rental Successful!</h2>
+                      <p className="text-textMuted max-w-sm mx-auto">Your rental period has concluded. Safety deposit has been released. Please pay the final balance.</p>
+                   </div>
+                   
+                   <div className="bg-background p-6 rounded-lg border border-surfaceLight text-left max-w-md mx-auto">
+                     <div className="flex justify-between items-center mb-4">
+                       <span className="text-white/70">Final Fee</span>
+                       <span className="text-xl font-bold text-white">₹{totalFees.toFixed(2)}</span>
+                     </div>
+                     
+                     <div className="pt-6 border-t border-surfaceLight">
+                       <p className="text-xs text-textMuted mb-3">Re-enter your RentHub password to finalize the transaction via {paymentMethod.toUpperCase()}.</p>
+                       <input 
+                          type="password" 
+                          value={password} 
+                          onChange={e => setPassword(e.target.value)} 
+                          placeholder="Password" 
+                          className="input-field w-full mb-2" 
+                       />
+                       {passwordError && <p className="text-xs text-red-500 mb-4">{passwordError}</p>}
+                       <button onClick={() => {
+                          if (!validatePassword(password)) { setPasswordError('Incorrect password'); return; }
+                          alert("All Done! Thank you for using RentHub.");
+                          clearCart();
+                          localStorage.removeItem('cart_step');
+                          navigate('/');
+                       }} className="btn-primary w-full py-3 mt-4" disabled={!password}>Pay ₹{totalFees.toFixed(2)} Final Fee</button>
+                     </div>
+                   </div>
                 </div>
               )}
               
-              {/* Actions */}
-              <div className="flex justify-between items-center mt-8">
-                {currentStep > 0 && (
-                  <button 
-                    onClick={() => setCurrentStep(v => v-1)}
-                    className="btn-outline px-8"
-                  >
-                    BACK
-                  </button>
-                )}
-                <button 
-                  onClick={handleCheckout}
-                  className="btn-primary px-12 ml-auto"
-                >
-                  {currentStep === 5 ? 'CHECKOUT' : 'NEXT'}
-                </button>
-              </div>
-
             </div>
 
-            {/* Right Column: Cart Sidebar */}
-            <div className="w-full lg:w-80 shrink-0">
-              <div className="bg-background rounded-lg p-6 border border-surfaceLight sticky top-24">
-                <h3 className="text-lg font-bold text-white mb-6">Order Summary</h3>
-                
-                <div className="space-y-4 mb-6 border-b border-surfaceLight pb-6">
-                  {cartItems.map((item) => (
-                    <div key={item.id} className="flex gap-3 relative">
-                      <img src={item.thumbnail} alt={item.title} className="w-16 h-16 rounded object-cover border border-surfaceLight shrink-0" />
-                      <div className="flex flex-col justify-between">
-                        <h4 className="text-xs font-semibold text-white leading-tight pr-4">{item.title}</h4>
-                        <div className="flex justify-between items-center w-full">
-                           <p className="text-sm font-bold text-white">${item.price}</p>
-                           <button onClick={() => removeFromCart(item.id)} className="text-[10px] uppercase tracking-wider text-textMuted hover:text-red-500 transition-colors">
-                             Remove
-                           </button>
+            {/* Right Column: Order Summary (Visible only in Step 0 and 1) */}
+            {currentStep < 2 && (
+              <div className="w-full lg:w-80 shrink-0">
+                <div className="bg-background rounded-lg p-6 border border-surfaceLight sticky top-24">
+                  <h3 className="text-lg font-bold text-white mb-6">Order Summary</h3>
+                  
+                  <div className="space-y-4 mb-6 border-b border-surfaceLight pb-6">
+                    {cartItems.map((item) => (
+                      <div key={item.id} className="flex gap-3 relative">
+                        <img src={item.thumbnail} alt={item.title} className="w-16 h-16 rounded object-cover border border-surfaceLight shrink-0" />
+                        <div className="flex flex-col justify-between">
+                          <h4 className="text-xs font-semibold text-white leading-tight pr-4">{item.title}</h4>
+                          <div className="flex justify-between items-center w-full">
+                             <p className="text-xs font-bold text-white">₹{(item.price_per_day_paise/100).toFixed(2)}/day</p>
+                             {currentStep === 0 && (
+                                <button onClick={() => removeFromCart(item.id)} className="text-[10px] uppercase tracking-wider text-textMuted hover:text-red-500 transition-colors">
+                                  Remove
+                                </button>
+                             )}
+                          </div>
                         </div>
                       </div>
+                    ))}
+                  </div>
+                  
+                  <div className="space-y-3 text-sm mb-6 pb-6 border-b border-surfaceLight">
+                    <div className="flex justify-between text-textMuted">
+                      <span>{cartItems.length} items rental</span>
+                      <span className="text-white">₹{subtotal.toFixed(2)}</span>
                     </div>
-                  ))}
-                </div>
-                
-                <div className="space-y-3 text-sm mb-6 pb-6 border-b border-surfaceLight">
-                  <div className="flex justify-between text-textMuted">
-                    <span>{cartItems.length} items worth</span>
-                    <span className="text-white">${subtotal.toFixed(2)}</span>
+                    <div className="flex justify-between text-textMuted">
+                      <span>Delivery</span>
+                      <span className="text-white">₹{deliveryFee.toFixed(2)}</span>
+                    </div>
+                    <div className="flex justify-between text-textMuted">
+                      <span>Taxes</span>
+                      <span className="text-white">₹{T.toFixed(2)}</span>
+                    </div>
+                    {currentStep > 0 && (
+                      <div className="flex justify-between text-amber mt-2 pt-2 border-t border-surfaceLight/50">
+                        <span className="font-semibold">Sec. Deposit (Hold)</span>
+                        <span className="font-bold">₹{totalSafetyDeposit.toFixed(2)}</span>
+                      </div>
+                    )}
                   </div>
-                  <div className="flex justify-between text-textMuted">
-                    <span>Return</span>
-                    <span className="text-white">${subtotal.toFixed(2)}</span>
+                  
+                  <div className="flex justify-between items-center">
+                    <span className="text-lg font-semibold text-white">Final Charge</span>
+                    <span className="text-xl font-bold text-white">₹{totalFees.toFixed(2)}</span>
                   </div>
-                  <div className="flex justify-between text-textMuted">
-                    <span>Delivery</span>
-                    <span className="text-white">${delivery.toFixed(2)}</span>
-                  </div>
-                  <div className="flex justify-between font-semibold mt-2 pt-2 border-t border-surfaceLight/50 text-textMuted">
-                    <span>Subtotal</span>
-                    <span className="text-white">${(subtotal + delivery).toFixed(2)}</span>
-                  </div>
-                  <div className="flex justify-between text-textMuted">
-                    <span>Taxes</span>
-                    <span className="text-white">${taxes.toFixed(2)}</span>
-                  </div>
-                </div>
-                
-                <div className="flex justify-between items-center">
-                  <span className="text-lg font-semibold text-white">Total</span>
-                  <span className="text-2xl font-bold text-white">${total.toFixed(2)}</span>
+                  <p className="text-[10px] text-textMuted mt-2 leading-relaxed">Deposit is authorized separately and drops off after safe item return.</p>
                 </div>
               </div>
-            </div>
+            )}
 
           </div>
         )}

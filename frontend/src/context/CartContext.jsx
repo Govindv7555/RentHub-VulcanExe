@@ -19,7 +19,9 @@ export function CartProvider({ children }) {
 
   const clearCart = () => setCartItems([]);
 
-  const subtotal = cartItems.reduce((acc, item) => acc + (item.price || 0), 0);
+  const subtotal = cartItems.reduce((acc, item) => {
+     return acc + (item.price_per_day_paise ? item.price_per_day_paise / 100 : item.price || 0);
+  }, 0);
 
   return (
     <CartContext.Provider value={{ cartItems, addToCart, removeFromCart, clearCart, subtotal }}>
