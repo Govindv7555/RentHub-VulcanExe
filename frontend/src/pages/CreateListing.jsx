@@ -1,5 +1,5 @@
 import { useState } from 'react';
-import { Camera, MapPin, CheckCircle, Info } from 'lucide-react';
+import { Camera, MapPin, CheckCircle, Info, ShieldCheck } from 'lucide-react';
 import { cn } from '../lib/utils';
 import { useNavigate } from 'react-router-dom';
 import { useAuth } from '../context/AuthContext';
