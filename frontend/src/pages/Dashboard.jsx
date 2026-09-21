@@ -1,4 +1,4 @@
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import { useAuth } from '../context/AuthContext';
 import { Link } from 'react-router-dom';
 import { ShieldCheck, Plus, Package, MessageCircle, MapPin } from 'lucide-react';
@@ -8,6 +8,13 @@ import { getListings, removeListing } from '../data/mockData';
 export default function Dashboard() {
   const { user } = useAuth();
   const [activeTab, setActiveTab] = useState('profile');
+  const [myListings, setMyListings] = useState([]);
+
+  useEffect(() => {
+    if (user) {
+      setMyListings(getListings().filter(item => item.owner_id === user.id));
+    }
+  }, [user]);
 
   // Hardcode a mock trust structure representing rentic's logic
   const trustScore = 75; // Out of 100
@@ -23,15 +30,6 @@ export default function Dashboard() {
        </div>
      );
   }
-
-  const [myListings, setMyListings] = useState([]);
-
-  useEffect(() => {
-    if (user) {
-      // Pull dynamic mock DB listings owned by this user
-      setMyListings(getListings().filter(item => item.owner_id === user.id));
-    }
-  }, [user]);
 
   const handleDelete = (id) => {
     if(window.confirm("Are you sure you want to delete this listing?")) {
