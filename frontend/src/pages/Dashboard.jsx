@@ -178,7 +178,7 @@ export default function Dashboard() {
                            <div className="flex gap-4">
                              <div>
                                <p className="text-[10px] text-textMuted uppercase mb-0.5">Dialy</p>
-                               <p className="text-sm font-semibold text-white">${(item.price_per_day_paise / 100).toLocaleString()}</p>
+                               <p className="text-sm font-semibold text-white">₹{(item.price_per_day_paise / 100).toLocaleString()}</p>
                              </div>
                            </div>
                            <button className="text-[10px] uppercase tracking-wider font-semibold text-amber hover:text-white transition-colors">Edit</button>

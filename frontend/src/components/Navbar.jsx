@@ -11,7 +11,7 @@ export default function Navbar() {
   const { cartItems } = useCart();
   const { user, logout } = useAuth();
   
-  const [location, setLocation] = useState('Austin, TX');
+  const [location, setLocation] = useState('New Delhi, DL');
 
   const links = [
     { name: 'HOME', path: '/' },
@@ -144,7 +144,7 @@ export default function Navbar() {
             
             <div className="p-4 flex justify-end gap-4 bg-background">
               <button className="btn-outline" onClick={() => setIsLocationModalOpen(false)}>Cancel</button>
-              <button className="btn-primary" onClick={() => { setLocation('Austin, TX'); setIsLocationModalOpen(false); }}>
+              <button className="btn-primary" onClick={() => { setLocation('New Delhi, DL'); setIsLocationModalOpen(false); }}>
                 Confirm Location
               </button>
             </div>

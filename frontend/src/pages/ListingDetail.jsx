@@ -80,15 +80,15 @@ export default function ListingDetail() {
                 <div className="grid grid-cols-3 gap-4 mb-6 pb-6 border-b border-surfaceLight">
                   <div>
                     <p className="text-textMuted text-[10px] uppercase tracking-wider mb-1">Daily</p>
-                    <p className="text-2xl font-bold text-white">${(listing.price_per_day_paise / 100).toLocaleString()}</p>
+                    <p className="text-2xl font-bold text-white">₹{(listing.price_per_day_paise / 100).toLocaleString()}</p>
                   </div>
                   <div>
                     <p className="text-textMuted text-[10px] uppercase tracking-wider mb-1">Weekly</p>
-                    <p className="text-xl font-bold text-white/50">${(listing.price_per_week_paise / 100).toLocaleString()}</p>
+                    <p className="text-xl font-bold text-white/50">₹{(listing.price_per_week_paise / 100).toLocaleString()}</p>
                   </div>
                   <div>
                     <p className="text-textMuted text-[10px] uppercase tracking-wider mb-1">4 weeks</p>
-                    <p className="text-xl font-bold text-white/50">${(listing.price_per_month_paise / 100).toLocaleString()}</p>
+                    <p className="text-xl font-bold text-white/50">₹{(listing.price_per_month_paise / 100).toLocaleString()}</p>
                   </div>
                 </div>
 
@@ -97,7 +97,7 @@ export default function ListingDetail() {
                      <CheckCircle size={14} className="mr-2" /> Available today
                    </div>
                    <div className="flex items-center text-sm text-textMuted">
-                     <Info size={14} className="mr-2 text-white/40" /> Refundable deposit: ${(listing.declared_value_paise / 100 * 0.25).toLocaleString()}
+                     <Info size={14} className="mr-2 text-white/40" /> Refundable deposit: ₹{(listing.declared_value_paise / 100 * 0.25).toLocaleString()}
                    </div>
                 </div>
 

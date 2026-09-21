@@ -74,7 +74,7 @@ export default function Chat() {
                </div>
                <div>
                   <p className="text-xs text-white font-bold">Bosch Pro Hammer Drill</p>
-                  <p className="text-[10px] text-amber">$45 / day</p>
+                  <p className="text-[10px] text-amber">₹450 / day</p>
                </div>
             </div>
             <button className="btn-primary py-1.5 px-4 text-[10px] uppercase">Review Request</button>

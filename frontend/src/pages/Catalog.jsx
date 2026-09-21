@@ -68,7 +68,7 @@ export default function Catalog() {
                <select className="input-field w-full text-sm appearance-none cursor-pointer">
                  <option>All locations</option>
                  <option>Houston, TX</option>
-                 <option>Austin, TX</option>
+                 <option>New Delhi, DL</option>
                  <option>Dallas, TX</option>
                </select>
                <ChevronDown size={14} className="absolute right-9 mt-[-24px] pointer-events-none text-textMuted" />
@@ -128,12 +128,12 @@ export default function Catalog() {
                <div className="flex justify-between items-center gap-2">
                   <div className="flex flex-col">
                     <span className="text-[10px] text-textMuted uppercase mb-1">From:</span>
-                    <div className="bg-background border border-surfaceLight rounded px-2 py-1 text-sm">$50</div>
+                    <div className="bg-background border border-surfaceLight rounded px-2 py-1 text-sm">₹500</div>
                   </div>
                   <span className="text-surfaceLight">-</span>
                   <div className="flex flex-col">
                     <span className="text-[10px] text-textMuted uppercase mb-1">To:</span>
-                    <div className="bg-background border border-surfaceLight rounded px-2 py-1 text-sm">$800</div>
+                    <div className="bg-background border border-surfaceLight rounded px-2 py-1 text-sm">₹8000</div>
                   </div>
                </div>
             </div>
@@ -205,15 +205,15 @@ export default function Catalog() {
                       <div className="flex gap-6">
                         <div>
                           <p className="text-textMuted text-[10px] uppercase tracking-wider mb-1">Daily</p>
-                          <p className="text-xl font-bold text-white">${(listing.price_per_day_paise / 100).toLocaleString()}</p>
+                          <p className="text-xl font-bold text-white">₹{(listing.price_per_day_paise / 100).toLocaleString()}</p>
                         </div>
                         <div>
                           <p className="text-textMuted text-[10px] uppercase tracking-wider mb-1">Weekly</p>
-                          <p className="text-xl font-bold text-white/50">${(listing.price_per_week_paise / 100).toLocaleString()}</p>
+                          <p className="text-xl font-bold text-white/50">₹{(listing.price_per_week_paise / 100).toLocaleString()}</p>
                         </div>
                         <div className="hidden lg:block">
                           <p className="text-textMuted text-[10px] uppercase tracking-wider mb-1">4 weeks</p>
-                          <p className="text-xl font-bold text-white/50">${(listing.price_per_month_paise / 100).toLocaleString()}</p>
+                          <p className="text-xl font-bold text-white/50">₹{(listing.price_per_month_paise / 100).toLocaleString()}</p>
                         </div>
                       </div>
                       

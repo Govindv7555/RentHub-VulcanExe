@@ -94,11 +94,11 @@ export default function CreateListing() {
 
               <div className="grid grid-cols-1 sm:grid-cols-2 gap-6 pt-6 border-t border-surfaceLight">
                 <div>
-                  <label className="text-[10px] uppercase font-bold text-textMuted mb-2 block">Daily Rate ($)</label>
+                  <label className="text-[10px] uppercase font-bold text-textMuted mb-2 block">Daily Rate (₹)</label>
                   <input type="number" className="input-field w-full" placeholder="0.00" defaultValue="45" />
                 </div>
                 <div>
-                  <label className="text-[10px] uppercase font-bold text-textMuted mb-2 block">Hourly Rate ($) - Optional</label>
+                  <label className="text-[10px] uppercase font-bold text-textMuted mb-2 block">Hourly Rate (₹) - Optional</label>
                   <input type="number" className="input-field w-full" placeholder="0.00" />
                 </div>
               </div>
@@ -119,7 +119,7 @@ export default function CreateListing() {
               <div>
                 <label className="text-[10px] uppercase font-bold text-textMuted mb-2 block">Item Location</label>
                 <div className="relative">
-                  <input type="text" className="input-field w-full pl-10" placeholder="Enter street address or zip code" defaultValue="Austin, TX 78701" />
+                  <input type="text" className="input-field w-full pl-10" placeholder="Enter street address or zip code" defaultValue="Mumbai, MH 400001" />
                   <MapPin size={16} className="absolute left-3 top-1/2 -translate-y-1/2 text-textMuted" />
                 </div>
               </div>

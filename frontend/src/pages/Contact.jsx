@@ -16,7 +16,7 @@ export default function Contact() {
             <div className="space-y-8">
               <div>
                 <p className="text-xs text-textMuted uppercase mb-1">Phone Number</p>
-                <p className="text-white font-medium">+1 (555) 019-3829</p>
+                <p className="text-white font-medium">+91 98765 43210</p>
               </div>
               <div>
                 <p className="text-xs text-textMuted uppercase mb-1">Email Address</p>
@@ -26,7 +26,7 @@ export default function Contact() {
                 <p className="text-xs text-textMuted uppercase mb-1">Address</p>
                 <p className="text-white font-medium max-w-[200px] leading-relaxed">
                   Builder's Plaza, Suite 400<br/>
-                  Austin, TX 78701
+                  New Delhi, DL 110001
                 </p>
               </div>
             </div>
@@ -54,7 +54,7 @@ export default function Contact() {
                 </div>
                 <div>
                   <label className="text-[10px] text-black/60 uppercase font-bold mb-1 block">Phone number</label>
-                  <input type="tel" className="w-full bg-white/20 border border-black/10 rounded px-3 py-2 text-black placeholder-black/30 focus:outline-none focus:bg-white/30 transition-colors" placeholder="(555) 123-4567" />
+                  <input type="tel" className="w-full bg-white/20 border border-black/10 rounded px-3 py-2 text-black placeholder-black/30 focus:outline-none focus:bg-white/30 transition-colors" placeholder="+91 98765 43210" />
                 </div>
               </div>
               

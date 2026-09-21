@@ -115,7 +115,7 @@ export default function Home() {
               <div className="border-t border-surfaceLight pt-4 mt-auto flex justify-between items-end">
                 <div>
                   <p className="text-textMuted text-xs mb-1 uppercase tracking-wider">Daily</p>
-                  <p className="text-xl font-bold text-white">${(item.price_per_day_paise / 100).toLocaleString()}</p>
+                  <p className="text-xl font-bold text-white">₹{(item.price_per_day_paise / 100).toLocaleString()}</p>
                 </div>
                 <button 
                   onClick={() => handleAdd(item)}

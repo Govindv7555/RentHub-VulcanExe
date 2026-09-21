@@ -27,7 +27,7 @@ export default function Auth() {
     login({
       id: 'demo_user',
       name: 'Jane Smith',
-      phone: phone || '(555) 000-0000',
+      phone: phone || '(987) 654-3210',
       kyc_verified: false
     }, 'mock_jwt_token');
     navigate('/');
@@ -92,14 +92,14 @@ export default function Auth() {
                   </label>
                   <div className="flex">
                     <div className="bg-surfaceLight border border-surfaceLight rounded-l px-4 py-3 text-white flex items-center shrink-0">
-                      +1
+                      +91
                     </div>
                     <input 
                       type="tel" 
                       value={phone}
                       onChange={(e) => setPhone(e.target.value)}
                       className="input-field rounded-l-none w-full border-l-0 py-3 text-lg" 
-                      placeholder="(555) 000-0000"
+                      placeholder="(987) 654-3210"
                       autoFocus
                     />
                   </div>
