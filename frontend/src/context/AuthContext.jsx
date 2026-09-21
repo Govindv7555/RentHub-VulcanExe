@@ -10,20 +10,7 @@ export function AuthProvider({ children }) {
 
   // Mock initial load
   useEffect(() => {
-    const token = localStorage.getItem('token');
-    if (token) {
-      // In a real app we'd fetch /auth/me here
-      // For now, mock a user
-      setUser({
-        id: 'user_123',
-        name: 'Avinash R.',
-        phone: '+919876543210',
-        kyc_verified: true,
-        purchases_count: 6,
-        reputation_score: 75,
-        password: 'password123'
-      });
-    }
+    // User requested NO AUTO LOGIN AT START so they can test the buying flow gates.
     setLoading(false);
   }, []);
 

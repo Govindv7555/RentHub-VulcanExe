@@ -16,21 +16,28 @@ export default function Cart() {
   
   const [showLoginModal, setShowLoginModal] = useState(false);
   
-  // State Persistence — reset if cart is empty
-  const [currentStep, setCurrentStep] = useState(() => {
-    const saved = localStorage.getItem('cart_step');
-    return saved ? parseInt(saved, 10) : 0;
-  });
+  // State Persistence — tie to user session
+  const [currentStep, setCurrentStep] = useState(0);
 
+  // Load user's saved step on auth change
   useEffect(() => {
-    // Always reset to 0 if cart is empty
-    if (cartItems.length === 0) {
-      setCurrentStep(0);
-      localStorage.removeItem('cart_step');
+    if (user) {
+      const saved = localStorage.getItem(`cart_step_${user.id}`);
+      if (saved) setCurrentStep(parseInt(saved, 10));
     } else {
-      localStorage.setItem('cart_step', currentStep);
+      setCurrentStep(0);
     }
-  }, [currentStep, cartItems]);
+  }, [user]);
+
+  // Save step changes if logged in
+  useEffect(() => {
+    if (user && cartItems.length > 0) {
+      localStorage.setItem(`cart_step_${user.id}`, currentStep);
+    } else if (user && cartItems.length === 0) {
+      setCurrentStep(0);
+      localStorage.removeItem(`cart_step_${user.id}`);
+    }
+  }, [currentStep, cartItems, user]);
 
   const [dateRange, setDateRange] = useState({ 
     start: '2 Aug 2026', 
@@ -98,7 +105,7 @@ export default function Cart() {
   const handleReturnDamaged = () => {
     alert("Return initiated. Safety Deposit of ₹" + totalSafetyDeposit.toFixed(2) + " is refunded instantly.");
     clearCart();
-    localStorage.removeItem('cart_step');
+    if (user) localStorage.removeItem(`cart_step_${user.id}`);
     navigate('/');
   };
 
@@ -304,7 +311,7 @@ export default function Cart() {
                           if (!validatePassword(password)) { setPasswordError('Incorrect password'); return; }
                           alert("All Done! Thank you for using RentHub.");
                           clearCart();
-                          localStorage.removeItem('cart_step');
+                          if (user) localStorage.removeItem(`cart_step_${user.id}`);
                           navigate('/');
                        }} className="btn-primary w-full py-3 mt-4" disabled={!password}>Pay ₹{totalFees.toFixed(2)} Final Fee</button>
                      </div>
