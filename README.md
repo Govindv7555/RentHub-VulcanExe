@@ -1,78 +1,89 @@
-# RentHub-VulcanExe
+# RentHub
 
-32-hour hackathon · 3-person team · Govind, Sidhu, Denny
+## Problem Statement
 
-## What we're building
+Most homes own tools they use a few times a year (drills, ladders, power washers, lawn mowers), while other people buy the same expensive tools for a single job. Renting from neighbours is the obvious fix, but it barely happens because owners won't lend to a stranger: they fear theft, damage, no-shows and deposit disputes. Earlier rental platforms in India have stalled on exactly this trust gap.
 
-RentHub is a peer-to-peer marketplace in India where people rent home, garden and construction tools from each other. A trust stack (KYC, escrow deposit, micro-insurance, photo-verified handovers, reputation score) makes lending to a stranger safe.
+RentHub solves the trust problem so idle tools can earn money for their owners and save money for borrowers.
 
-## Current status
+## Project Description
 
-**Working**
-- Supabase project created for RentHub
-- `schema.sql` applied in the Supabase SQL Editor: tables live, RLS enabled, `public_identity` view live
-- Three storage buckets: `renthub-uploads` (private), `handover-photos` (private), `listing-photos` (public)
-- Handoff files added to the repo root: `HANDOFF.md`, `spec.yaml`, `schema.sql`, `updatelog.yaml` (iteration 4 pushed)
-- Site deployed on Vercel
+RentHub is a peer-to-peer marketplace in India for renting everything from heavy machinery to household tools. Owners list an item with photos and availability; renters book it for the dates they need. Every rental runs through a trust stack designed to make lending to a stranger safe:
 
-**Known issue**
-- Vercel Deployment Protection redirects everyone except the owner's laptops to the Vercel login page. Turn it off (or share a bypass link) before anyone else tests or the judges see it.
+1. **Identity verification:** KYC with face match before a user can rent
+2. **Dynamic trust score:** each user builds a trust score, and it sets their security deposit tier (lower trust means a higher deposit)
+3. **Escrow deposit:** the security deposit is held and released after a clean return
+4. **Micro-insurance:** each rental is covered by insurance
+5. **Photo verification:** photos are taken at handover and at return, so condition is documented
+6. **Booking workflow:** owners accept or reject requests, and either side can cancel
 
-**Scope decisions**
-- KYC / trust flow is mock-only for the hackathon: the frontend shows it, the backend has thin stubs.
-- Real integrations from the pitch (Aadhaar/DigiLocker KYC, Razorpay escrow, Acko insurance, Twilio SMS) are stretch goals, not MVP.
+In the 32-hour hackathon MVP, the KYC, OTP and payment steps run in mock mode, and the booking, trust and deposit logic runs on a real backend and database.
 
-## Stack
+---
 
-| Layer | Tech |
-| --- | --- |
-| Frontend | React + Vite |
-| Backend | Thin API + Supabase (Postgres, storage) |
-| Hosting | Vercel (frontend and backend hosted by the backend dev) |
+## Google AI Usage
 
-## Structure
+### Tools / Models Used
 
-| Folder / file | Owner | Contains |
-| --- | --- | --- |
-| `frontend/` | TBD | UI, screens, styling |
-| `backend/` | TBD | endpoints, database, auth |
-| `core/` | TBD | core logic / AI |
-| `HANDOFF.md`, `spec.yaml`, `schema.sql`, `updatelog.yaml` | Backend | Frontend/backend handoff, API contract, DB schema, change log |
+- TODO: e.g. Gemini model name / API
 
-Don't edit a folder that isn't yours — ask the owner instead.
+## Tech Stack used
 
-## Ports (fixed — everyone uses these)
+- React + Vite (frontend)
+- Next.js API routes (backend)
+- Supabase: Postgres with Row Level Security, file storage (listing photos, handover photos, uploads)
+- Vercel (hosting)
+- Planned integrations, mocked in the MVP: Aadhaar/DigiLocker KYC, Razorpay, Acko, Twilio SMS
 
-- frontend → 3000 (set `server.port` to 3000 in `vite.config`; Vite defaults to 5173)
-- backend → 8000
+### How Google AI Was Used
 
-## Setup
+TODO: explain where the AI sits in the product and what it does for the user.
 
-1. `git clone https://github.com/Govindv7555/RentHub-VulcanExe.git`
-2. Get `.env.local` from the backend dev (Supabase keys) or copy `.env.example` to `.env.local` and fill in the values
-3. Terminal 1: start the backend on port 8000
-4. Terminal 2: start the frontend on port 3000
-5. Open http://localhost:3000
+---
 
-## Data contract
+### GitHub repo link of the project
 
-The source of truth is `spec.yaml` (API requests/endpoints) and `schema.sql` (database). Changing either requires telling the whole team, and every change gets an entry in `updatelog.yaml`.
+[Link of the github repository](https://github.com/Govindv7555/RentHub-VulcanExe)
 
-## Rules
+## Proof of Google AI Usage
 
-- `main` always works. Never push broken code to it.
-- Push small, push often — every time something works, even if ugly.
-- Never commit `.env`, `.env.local` or real API keys.
-- Commit the lockfile so all three machines match.
+Proof is included in the `/proofs` folder.
 
-## The 32-hour clock
+## Screenshots
 
-| Hour | Target |
-| --- | --- |
-| 1 | One-liner, lanes, and data contract locked |
-| 5 | Ugliest possible end-to-end version working |
-| 14 | The feature that impresses judges; backend deployed |
-| 22 | Feature freeze — Demo Owner takes over integration |
-| 26 | Deployed and rehearsed once |
-| 29 | Buffer for the thing that will break |
-| 31 | Final rehearsal on the demo machine, then submit |
+Project screenshots are in the `/screenshots` folder.
+
+![Home](screenshots/01-home.png)
+![Screen 2](screenshots/02-screen.png)
+![Screen 3](screenshots/03-screen.png)
+
+---
+
+## Demo Video
+
+https://drive.google.com/file/d/11_0bEWGOpiEqMPoBRkSCyCblUIoQmbLX/view?usp=sharing
+
+---
+
+## Installation Steps
+
+```bash
+# 1. Clone the repo
+git clone https://github.com/Govindv7555/RentHub-VulcanExe.git
+cd RentHub-VulcanExe
+
+# 2. Backend: add environment variables, then start it (port 8000)
+cd backend
+cp ../.env.example .env.local   # fill in the Supabase keys
+npm install
+npm run dev
+
+# 3. Frontend (new terminal): start it (port 5173)
+cd frontend
+npm install
+npm run dev
+```
+
+Open http://localhost:5173.
+
+The app runs with `MOCK_OTP=true` and `MOCK_KYC=true`, so the demo OTP code is `123456`.
