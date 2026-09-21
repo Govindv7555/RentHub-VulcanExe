@@ -19,7 +19,7 @@ export default function Auth() {
 
   const handleSendOtp = (e) => {
     e.preventDefault();
-    if (phone.length < 10) return;
+    if (phone.length !== 10) return;
     setStep(2);
   };
 
@@ -27,8 +27,11 @@ export default function Auth() {
     login({
       id: 'demo_user',
       name: 'Jane Smith',
-      phone: phone || '(987) 654-3210',
-      kyc_verified: false
+      phone: phone || '9876543210',
+      kyc_verified: false,
+      purchases_count: 6,
+      reputation_score: 75,
+      password: 'password123'
     }, 'mock_jwt_token');
     navigate('/');
   };
@@ -99,7 +102,8 @@ export default function Auth() {
                       value={phone}
                       onChange={(e) => setPhone(e.target.value)}
                       className="input-field rounded-l-none w-full border-l-0 py-3 text-lg" 
-                      placeholder="(987) 654-3210"
+                      placeholder="9876543210"
+                      maxLength="10"
                       autoFocus
                     />
                   </div>

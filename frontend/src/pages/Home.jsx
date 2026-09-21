@@ -1,13 +1,15 @@
-import { Link } from 'react-router-dom';
+import { Link, useNavigate } from 'react-router-dom';
 import { categories, mockListings } from '../data/mockData';
 import { Search, Star, Info } from 'lucide-react';
 import { useCart } from '../context/CartContext';
 
 export default function Home() {
   const { addToCart } = useCart();
+  const navigate = useNavigate();
 
   const handleAdd = (item) => {
     addToCart({ ...item, price: item.price_per_day_paise / 100 });
+    navigate('/cart');
   };
 
   return (

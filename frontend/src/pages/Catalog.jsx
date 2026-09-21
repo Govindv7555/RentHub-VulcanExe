@@ -67,9 +67,9 @@ export default function Catalog() {
                </h3>
                <select className="input-field w-full text-sm appearance-none cursor-pointer">
                  <option>All locations</option>
-                 <option>Houston, TX</option>
+                 <option>Mumbai, MH</option>
                  <option>New Delhi, DL</option>
-                 <option>Dallas, TX</option>
+                 <option>Chennai, TN</option>
                </select>
                <ChevronDown size={14} className="absolute right-9 mt-[-24px] pointer-events-none text-textMuted" />
             </div>

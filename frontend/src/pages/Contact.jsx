@@ -25,7 +25,7 @@ export default function Contact() {
               <div>
                 <p className="text-xs text-textMuted uppercase mb-1">Address</p>
                 <p className="text-white font-medium max-w-[200px] leading-relaxed">
-                  Builder's Plaza, Suite 400<br/>
+                  Sector 62, Noida<br/>
                   New Delhi, DL 110001
                 </p>
               </div>

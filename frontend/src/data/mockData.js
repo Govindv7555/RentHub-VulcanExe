@@ -58,7 +58,7 @@ export const mockListings = [
     price_per_month_paise: 60000,
     rating: 4.6,
     reviews: 5,
-    location: { address: 'Dallas, TX', lat: 32.7767, lng: -96.7970 },
+    location: { address: 'Chennai, TN', lat: 13.0827, lng: 80.2707 },
     thumbnail: 'https://images.unsplash.com/photo-1504307651254-35680f356dfd?w=800&auto=format&fit=crop&q=60',
     owner: { name: 'ToolBox Rentals', verified: false },
     withDriver: false
@@ -74,7 +74,7 @@ export const mockListings = [
     price_per_month_paise: 55000,
     rating: 4.7,
     reviews: 18,
-    location: { address: 'Houston, TX', lat: 29.7604, lng: -95.3698 },
+    location: { address: 'Hyderabad, TS', lat: 17.3850, lng: 78.4867 },
     thumbnail: 'https://images.unsplash.com/photo-1621644026362-e1d52dbe2c4a?w=800&auto=format&fit=crop&q=60',
     owner: { name: 'CleanFreak Co', verified: true },
     withDriver: false

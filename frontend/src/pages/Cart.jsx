@@ -14,16 +14,21 @@ export default function Cart() {
   const { user, validatePassword } = useAuth();
   const navigate = useNavigate();
   
-  // State Persistence
+  const [showLoginModal, setShowLoginModal] = useState(false);
+  
+  // State Persistence — reset if cart is empty
   const [currentStep, setCurrentStep] = useState(() => {
     const saved = localStorage.getItem('cart_step');
     return saved ? parseInt(saved, 10) : 0;
   });
 
   useEffect(() => {
-    localStorage.setItem('cart_step', currentStep);
-    if(cartItems.length === 0 && currentStep === 0) {
-       localStorage.removeItem('cart_step');
+    // Always reset to 0 if cart is empty
+    if (cartItems.length === 0) {
+      setCurrentStep(0);
+      localStorage.removeItem('cart_step');
+    } else {
+      localStorage.setItem('cart_step', currentStep);
     }
   }, [currentStep, cartItems]);
 
@@ -73,8 +78,7 @@ export default function Cart() {
 
   const handleNextStep = () => {
     if (!user) {
-      alert("Please log in to proceed with this purchase.");
-      navigate('/login');
+      setShowLoginModal(true);
       return;
     }
     setCurrentStep(s => s + 1);
@@ -88,7 +92,6 @@ export default function Cart() {
     }
     setPasswordError('');
     setPassword('');
-    alert("Payment successful!");
     handleNextStep();
   };
 
@@ -370,6 +373,37 @@ export default function Cart() {
         )}
         
       </div>
+
+      {/* Login Required Modal */}
+      {showLoginModal && (
+        <div className="fixed inset-0 z-[100] bg-black/80 backdrop-blur-sm flex items-center justify-center p-4">
+          <div className="bg-surface border border-surfaceLight rounded-lg w-full max-w-sm overflow-hidden shadow-2xl animate-fade-in-up">
+            <div className="p-6 text-center">
+              <div className="w-16 h-16 mx-auto mb-4 bg-amber/10 rounded-full flex items-center justify-center">
+                <ShieldCheck size={32} className="text-amber" />
+              </div>
+              <h3 className="text-xl font-bold text-white mb-2">Login Required</h3>
+              <p className="text-sm text-textMuted leading-relaxed">
+                You need to log in to your RentHub account before you can rent equipment. Your cart items will be saved.
+              </p>
+            </div>
+            <div className="p-4 bg-background flex gap-3 border-t border-surfaceLight">
+              <button
+                onClick={() => { setShowLoginModal(false); navigate('/'); }}
+                className="btn-outline flex-1"
+              >
+                Cancel
+              </button>
+              <button
+                onClick={() => { setShowLoginModal(false); navigate('/login'); }}
+                className="btn-primary flex-1"
+              >
+                Log In
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
     </div>
   );
 }

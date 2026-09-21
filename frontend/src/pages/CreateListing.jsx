@@ -142,7 +142,7 @@ export default function CreateListing() {
                    </div>
                    
                    <div className="absolute bottom-4 right-4 bg-background border border-surfaceLight px-3 py-1 rounded shadow-lg text-[10px] font-mono text-textMuted">
-                     LAT 30.2672 / LNG -97.7431
+                     LAT 19.0760 / LNG 72.8777
                    </div>
                 </div>
               </div>
