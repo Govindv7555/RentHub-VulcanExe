@@ -1,12 +1,12 @@
 import { useParams, Link } from 'react-router-dom';
-import { mockListings } from '../data/mockData';
+import { getListings } from '../data/mockData';
 import { Star, MapPin, Search, PlusCircle, CheckCircle, Info } from 'lucide-react';
 import { useCart } from '../context/CartContext';
 
 export default function ListingDetail() {
-  const { id } = useParams(); // URL usually like /listing/:id
-  // Because we don't have a specific listing route param yet, we'll just mock loading the first item for now
-  const listing = mockListings[0];
+  const { id } = useParams();
+  const allListings = getListings();
+  const listing = allListings.find(l => l.id === id) || allListings[0];
   const { addToCart } = useCart();
 
   const handleAdd = () => {
