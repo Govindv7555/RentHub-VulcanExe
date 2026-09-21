@@ -13,6 +13,7 @@ import Dashboard from './pages/Dashboard';
 import ListingDetail from './pages/ListingDetail';
 import CreateListing from './pages/CreateListing';
 import Chat from './pages/Chat';
+import KYC from './pages/KYC';
 
 // Placeholder pages for early build
 const PlaceholderPage = ({ title }) => (
@@ -39,6 +40,7 @@ function App() {
                 <Route path="/contacts" element={<Contact />} />
                 <Route path="/dashboard" element={<Dashboard />} />
                 <Route path="/login" element={<Auth />} />
+                <Route path="/kyc" element={<KYC />} />
                 <Route path="/create-listing" element={<CreateListing />} />
                 <Route path="/chat" element={<Chat />} />
               </Routes>
